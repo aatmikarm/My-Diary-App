@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">My Diary</string>
+    <!-- Google AdMob IDs -->
+    <string name="admob_app_id">ca-app-pub-5678552217308395~3628411865</string>
+    <string name="admob_banner_id">ca-app-pub-5678552217308395/6614502002</string>
+    <string name="admob_interstitial_id">ca-app-pub-5678552217308395/1960941121</string>
+</resources>

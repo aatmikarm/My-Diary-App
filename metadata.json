@@ -1,0 +1,6 @@
+{
+  "name": "My Diary",
+  "description": "A private, beautiful offline diary and memory journal with moods, photos, drawings, stickers, calendar, and passcode protection.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
