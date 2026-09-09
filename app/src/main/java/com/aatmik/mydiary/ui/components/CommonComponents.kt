@@ -1,4 +1,4 @@
-package com.example.ui.components
+package com.aatmik.mydiary.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -56,10 +56,10 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
-import com.example.ui.theme.DiaryPink
-import com.example.ui.theme.DiaryPinkContainer
-import com.example.ui.theme.DiaryPinkSubtle
-import com.example.util.DiaryUtils
+import com.aatmik.mydiary.ui.theme.DiaryPink
+import com.aatmik.mydiary.ui.theme.DiaryPinkContainer
+import com.aatmik.mydiary.ui.theme.DiaryPinkSubtle
+import com.aatmik.mydiary.util.DiaryUtils
 
 @Composable
 fun MoodSelectorRow(

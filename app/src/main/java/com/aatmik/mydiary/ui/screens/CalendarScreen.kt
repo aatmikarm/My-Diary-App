@@ -1,4 +1,4 @@
-package com.example.ui.screens
+package com.aatmik.mydiary.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -52,10 +52,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.DiaryPink
-import com.example.ui.theme.DiaryPinkSubtle
-import com.example.util.DiaryUtils
-import com.example.viewmodel.DiaryViewModel
+import com.aatmik.mydiary.ui.theme.DiaryPink
+import com.aatmik.mydiary.ui.theme.DiaryPinkSubtle
+import com.aatmik.mydiary.util.DiaryUtils
+import com.aatmik.mydiary.viewmodel.DiaryViewModel
 import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)

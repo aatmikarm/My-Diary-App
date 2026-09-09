@@ -1,4 +1,4 @@
-package com.example.ui.screens
+package com.aatmik.mydiary.ui.screens
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -27,11 +27,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.R
-import com.example.ui.theme.DiaryPink
-import com.example.ui.theme.DiaryPinkSubtle
-import com.example.viewmodel.DiaryViewModel
-import com.example.viewmodel.Screen
+import com.aatmik.mydiary.R
+import com.aatmik.mydiary.ui.theme.DiaryPink
+import com.aatmik.mydiary.ui.theme.DiaryPinkSubtle
+import com.aatmik.mydiary.viewmodel.DiaryViewModel
+import com.aatmik.mydiary.viewmodel.Screen
 import kotlinx.coroutines.delay
 
 @Composable

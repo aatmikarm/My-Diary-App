@@ -1,4 +1,4 @@
-package com.example
+package com.aatmik.mydiary
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry

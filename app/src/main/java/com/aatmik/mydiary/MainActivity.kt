@@ -1,4 +1,4 @@
-package com.example
+package com.aatmik.mydiary
 
 import android.app.Activity
 import android.os.Bundle
@@ -16,21 +16,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.ui.screens.CalendarScreen
-import com.example.ui.screens.CreateEditEntryScreen
-import com.example.ui.screens.DrawingEditorScreen
-import com.example.ui.screens.EntryDetailScreen
-import com.example.ui.screens.HomeScreen
-import com.example.ui.screens.PinMode
-import com.example.ui.screens.PinScreen
-import com.example.ui.screens.SearchScreen
-import com.example.ui.screens.SettingsScreen
-import com.example.ui.screens.SplashScreen
-import com.example.ui.screens.WelcomeScreen
-import com.example.ui.theme.MyApplicationTheme
-import com.example.util.AdManager
-import com.example.viewmodel.DiaryViewModel
-import com.example.viewmodel.Screen
+import com.aatmik.mydiary.ui.screens.CalendarScreen
+import com.aatmik.mydiary.ui.screens.CreateEditEntryScreen
+import com.aatmik.mydiary.ui.screens.DrawingEditorScreen
+import com.aatmik.mydiary.ui.screens.EntryDetailScreen
+import com.aatmik.mydiary.ui.screens.HomeScreen
+import com.aatmik.mydiary.ui.screens.PinMode
+import com.aatmik.mydiary.ui.screens.PinScreen
+import com.aatmik.mydiary.ui.screens.SearchScreen
+import com.aatmik.mydiary.ui.screens.SettingsScreen
+import com.aatmik.mydiary.ui.screens.SplashScreen
+import com.aatmik.mydiary.ui.screens.WelcomeScreen
+import com.aatmik.mydiary.ui.theme.MyApplicationTheme
+import com.aatmik.mydiary.util.AdManager
+import com.aatmik.mydiary.viewmodel.DiaryViewModel
+import com.aatmik.mydiary.viewmodel.Screen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

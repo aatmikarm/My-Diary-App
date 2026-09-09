@@ -1,4 +1,4 @@
-package com.example.ui.components
+package com.aatmik.mydiary.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -22,8 +22,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import com.example.R
-import com.example.util.AdConfig
+import com.aatmik.mydiary.R
+import com.aatmik.mydiary.util.AdConfig
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize

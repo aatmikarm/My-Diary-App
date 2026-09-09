@@ -1,4 +1,4 @@
-package com.example.ui.theme
+package com.aatmik.mydiary.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

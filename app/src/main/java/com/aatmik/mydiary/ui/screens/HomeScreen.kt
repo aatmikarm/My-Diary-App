@@ -1,4 +1,4 @@
-package com.example.ui.screens
+package com.aatmik.mydiary.ui.screens
 
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -43,7 +43,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Surface
-import com.example.ui.components.BannerAdView
+import com.aatmik.mydiary.ui.components.BannerAdView
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -67,15 +67,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.R
-import com.example.data.DiaryEntry
-import com.example.ui.components.MoodSelectorRow
-import com.example.ui.theme.DiaryPink
-import com.example.ui.theme.DiaryPinkContainer
-import com.example.ui.theme.DiaryPinkSubtle
-import com.example.util.DiaryUtils
-import com.example.viewmodel.DiaryViewModel
-import com.example.viewmodel.Screen
+import com.aatmik.mydiary.R
+import com.aatmik.mydiary.data.DiaryEntry
+import com.aatmik.mydiary.ui.components.MoodSelectorRow
+import com.aatmik.mydiary.ui.theme.DiaryPink
+import com.aatmik.mydiary.ui.theme.DiaryPinkContainer
+import com.aatmik.mydiary.ui.theme.DiaryPinkSubtle
+import com.aatmik.mydiary.util.DiaryUtils
+import com.aatmik.mydiary.viewmodel.DiaryViewModel
+import com.aatmik.mydiary.viewmodel.Screen
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable

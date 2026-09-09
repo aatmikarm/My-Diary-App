@@ -1,4 +1,4 @@
-package com.example.ui.screens
+package com.aatmik.mydiary.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -45,11 +45,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.R
-import com.example.ui.theme.DiaryPink
-import com.example.ui.theme.DiaryPinkSubtle
-import com.example.viewmodel.DiaryViewModel
-import com.example.viewmodel.Screen
+import com.aatmik.mydiary.R
+import com.aatmik.mydiary.ui.theme.DiaryPink
+import com.aatmik.mydiary.ui.theme.DiaryPinkSubtle
+import com.aatmik.mydiary.viewmodel.DiaryViewModel
+import com.aatmik.mydiary.viewmodel.Screen
 
 @Composable
 fun WelcomeScreen(viewModel: DiaryViewModel) {
