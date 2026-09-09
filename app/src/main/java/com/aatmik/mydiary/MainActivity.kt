@@ -95,6 +95,7 @@ fun DiaryApp(viewModel: DiaryViewModel) {
                 viewModel = viewModel,
                 onDrawingSaved = { path ->
                     viewModel.pendingDoodlePath = path
+                    viewModel.editEntryDraft = viewModel.editEntryDraft?.copy(drawingPath = path)
                 }
             )
             Screen.SETTINGS -> SettingsScreen(viewModel = viewModel)

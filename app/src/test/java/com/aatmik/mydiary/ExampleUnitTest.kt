@@ -1,4 +1,4 @@
-package com.example
+package com.aatmik.mydiary
 
 import org.junit.Assert.*
 import org.junit.Test

@@ -1,13 +1,13 @@
-package com.example.viewmodel
+package com.aatmik.mydiary.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.data.DiaryDatabase
-import com.example.data.DiaryEntry
-import com.example.data.DiaryRepository
-import com.example.data.SecurityManager
-import com.example.util.DiaryUtils
+import com.aatmik.mydiary.data.DiaryDatabase
+import com.aatmik.mydiary.data.DiaryEntry
+import com.aatmik.mydiary.data.DiaryRepository
+import com.aatmik.mydiary.data.SecurityManager
+import com.aatmik.mydiary.util.DiaryUtils
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -105,6 +105,7 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
 
     // Editing State (Temporary memory buffer while editing)
     var editEntryDraft: DiaryEntry? = null
+    var originalEntry: DiaryEntry? = null
     var pendingDoodlePath: String? = null
 
     init {
@@ -188,16 +189,21 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun openCreateEntry(forDateMillis: Long = System.currentTimeMillis()) {
-        editEntryDraft = DiaryEntry(
+        pendingDoodlePath = null
+        val newEntry = DiaryEntry(
             dateMillis = forDateMillis,
             mood = _todayMood.value
         )
+        editEntryDraft = newEntry
+        originalEntry = newEntry.copy()
         _activeEntryId.value = null
         navigateTo(Screen.CREATE_EDIT)
     }
 
     fun openEditEntry(entry: DiaryEntry) {
+        pendingDoodlePath = null
         editEntryDraft = entry.copy()
+        originalEntry = entry.copy()
         _activeEntryId.value = entry.id
         navigateTo(Screen.CREATE_EDIT)
     }

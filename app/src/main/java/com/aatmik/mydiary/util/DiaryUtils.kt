@@ -1,4 +1,4 @@
-package com.example.util
+package com.aatmik.mydiary.util
 
 import android.content.Context
 import android.content.Intent
@@ -6,7 +6,7 @@ import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
 import android.net.Uri
 import androidx.core.content.FileProvider
-import com.example.data.DiaryEntry
+import com.aatmik.mydiary.data.DiaryEntry
 import org.json.JSONArray
 import java.io.File
 import java.io.FileOutputStream

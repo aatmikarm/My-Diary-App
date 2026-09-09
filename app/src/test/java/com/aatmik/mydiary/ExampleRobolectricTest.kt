@@ -1,4 +1,4 @@
-package com.example
+package com.aatmik.mydiary
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider

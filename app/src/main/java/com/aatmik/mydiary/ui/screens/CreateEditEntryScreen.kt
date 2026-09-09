@@ -131,6 +131,13 @@ fun CreateEditEntryScreen(
 
     var drawingPath by remember { mutableStateOf(viewModel.pendingDoodlePath ?: draft.drawingPath) }
 
+    LaunchedEffect(viewModel.pendingDoodlePath) {
+        viewModel.pendingDoodlePath?.let { newDoodle ->
+            drawingPath = newDoodle
+            viewModel.pendingDoodlePath = null
+        }
+    }
+
     // Text Formatting Options
     var fontFamilyName by remember { mutableStateOf(draft.fontFamily) }
     var fontSizeSp by remember { mutableIntStateOf(draft.fontSizeSp) }
@@ -145,20 +152,24 @@ fun CreateEditEntryScreen(
     var showTagDialog by remember { mutableStateOf(false) }
     var previewPhotoUri by remember { mutableStateOf<String?>(null) }
 
-    val isModified = remember(title, content, mood, photos.size, stickers.size, tags.size, drawingPath) {
-        title != draft.title ||
-                content != draft.content ||
-                mood != draft.mood ||
-                photos.toList() != DiaryUtils.parseJsonList(draft.photosJson) ||
-                stickers.toList() != DiaryUtils.parseJsonList(draft.stickersJson) ||
-                tags.toList() != DiaryUtils.parseJsonList(draft.tagsJson) ||
-                drawingPath != draft.drawingPath
+    val initialEntry = remember { viewModel.originalEntry ?: draft }
+    val isModified = remember(title, content, mood, photos.size, stickers.size, tags.size, drawingPath, initialEntry) {
+        title != initialEntry.title ||
+                content != initialEntry.content ||
+                mood != initialEntry.mood ||
+                photos.toList() != DiaryUtils.parseJsonList(initialEntry.photosJson) ||
+                stickers.toList() != DiaryUtils.parseJsonList(initialEntry.stickersJson) ||
+                tags.toList() != DiaryUtils.parseJsonList(initialEntry.tagsJson) ||
+                drawingPath != initialEntry.drawingPath
     }
 
     fun handleBack() {
         if (isModified) {
             showUnsavedDialog = true
         } else {
+            viewModel.pendingDoodlePath = null
+            viewModel.editEntryDraft = null
+            viewModel.originalEntry = null
             viewModel.navigateBack()
         }
     }
@@ -191,6 +202,8 @@ fun CreateEditEntryScreen(
 
         viewModel.saveEntry(updatedEntry) {
             viewModel.pendingDoodlePath = null
+            viewModel.editEntryDraft = null
+            viewModel.originalEntry = null
             onSaveFinished()
         }
     }
@@ -316,6 +329,21 @@ fun CreateEditEntryScreen(
                     // Draw Doodle
                     IconButton(
                         onClick = {
+                            viewModel.editEntryDraft = draft.copy(
+                                dateMillis = dateMillis,
+                                title = title,
+                                content = content,
+                                mood = mood,
+                                photosJson = DiaryUtils.toJsonList(photos),
+                                stickersJson = DiaryUtils.toJsonList(stickers),
+                                tagsJson = DiaryUtils.toJsonList(tags),
+                                drawingPath = drawingPath,
+                                fontFamily = fontFamilyName,
+                                fontSizeSp = fontSizeSp,
+                                isBold = isBold,
+                                isItalic = isItalic,
+                                textAlign = textAlignMode
+                            )
                             viewModel.navigateTo(Screen.DRAWING)
                         },
                         modifier = Modifier.testTag("action_drawing")
@@ -505,6 +533,7 @@ fun CreateEditEntryScreen(
                             .clickable {
                                 drawingPath = null
                                 viewModel.pendingDoodlePath = null
+                                viewModel.editEntryDraft = viewModel.editEntryDraft?.copy(drawingPath = null)
                             },
                         contentAlignment = Alignment.Center
                     ) {
@@ -653,6 +682,9 @@ fun CreateEditEntryScreen(
             },
             onDiscard = {
                 showUnsavedDialog = false
+                viewModel.pendingDoodlePath = null
+                viewModel.editEntryDraft = null
+                viewModel.originalEntry = null
                 viewModel.navigateBack()
             },
             onCancel = {

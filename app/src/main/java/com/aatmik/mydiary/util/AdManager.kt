@@ -1,9 +1,9 @@
-package com.example.util
+package com.aatmik.mydiary.util
 
 import android.app.Activity
 import android.content.Context
 import android.util.Log
-import com.example.R
+import com.aatmik.mydiary.R
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
