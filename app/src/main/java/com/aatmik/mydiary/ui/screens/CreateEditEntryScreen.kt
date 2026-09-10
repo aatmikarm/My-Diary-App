@@ -95,6 +95,7 @@ import com.aatmik.mydiary.ui.components.StickerPickerBottomSheet
 import com.aatmik.mydiary.ui.components.UnsavedChangesDialog
 import com.aatmik.mydiary.ui.theme.DiaryPink
 import com.aatmik.mydiary.ui.theme.DiaryPinkSubtle
+import com.aatmik.mydiary.util.AnalyticsManager
 import com.aatmik.mydiary.util.DiaryUtils
 import com.aatmik.mydiary.viewmodel.DiaryViewModel
 import com.aatmik.mydiary.viewmodel.Screen
@@ -215,6 +216,9 @@ fun CreateEditEntryScreen(
     ) { uris: List<Uri> ->
         uris.forEach { uri ->
             photos.add(uri.toString())
+            AnalyticsManager.log(AnalyticsManager.Events.PHOTO_ADDED) {
+                putInt("count", uris.size)
+            }
         }
     }
 
@@ -701,6 +705,9 @@ fun CreateEditEntryScreen(
             onStickerSelected = { sticker ->
                 if (!stickers.contains(sticker)) {
                     stickers.add(sticker)
+                    AnalyticsManager.log(AnalyticsManager.Events.STICKER_ADDED) {
+                        putString("sticker", sticker)
+                    }
                 }
             }
         )
@@ -801,6 +808,7 @@ fun CreateEditEntryScreen(
             onAddTag = { newTag ->
                 if (!tags.contains(newTag)) {
                     tags.add(newTag)
+                    AnalyticsManager.log(AnalyticsManager.Events.TAG_ADDED)
                 }
             },
             onDismiss = { showTagDialog = false }

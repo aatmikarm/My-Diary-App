@@ -29,6 +29,7 @@ import com.aatmik.mydiary.ui.screens.SplashScreen
 import com.aatmik.mydiary.ui.screens.WelcomeScreen
 import com.aatmik.mydiary.ui.theme.MyApplicationTheme
 import com.aatmik.mydiary.util.AdManager
+import com.aatmik.mydiary.util.AnalyticsManager
 import com.aatmik.mydiary.viewmodel.DiaryViewModel
 import com.aatmik.mydiary.viewmodel.Screen
 
@@ -39,6 +40,7 @@ class MainActivity : ComponentActivity() {
 
         // Initialize Google Mobile Ads SDK (AdMob)
         AdManager.initialize(this)
+        AnalyticsManager.initialize(this)
 
         setContent {
             val diaryViewModel: DiaryViewModel = viewModel()

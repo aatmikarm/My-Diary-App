@@ -70,6 +70,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aatmik.mydiary.ui.theme.DiaryPink
 import com.aatmik.mydiary.ui.theme.DiaryPinkSubtle
+import com.aatmik.mydiary.util.AnalyticsManager
 import com.aatmik.mydiary.viewmodel.DiaryViewModel
 import java.io.File
 import java.io.FileOutputStream
@@ -201,6 +202,7 @@ fun DrawingEditorScreen(
                                 FileOutputStream(file).use { out ->
                                     bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
                                 }
+                                AnalyticsManager.log(AnalyticsManager.Events.DRAWING_SAVED)
                                 onDrawingSaved(file.absolutePath)
                                 viewModel.navigateBack()
                             } catch (_: Exception) {
@@ -395,6 +397,7 @@ fun DrawingEditorScreen(
             confirmButton = {
                 Button(
                     onClick = {
+                        AnalyticsManager.log(AnalyticsManager.Events.DRAWING_DISCARDED)
                         showDiscardDialog = false
                         viewModel.navigateBack()
                     },

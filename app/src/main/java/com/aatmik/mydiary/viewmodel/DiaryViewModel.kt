@@ -7,6 +7,7 @@ import com.aatmik.mydiary.data.DiaryDatabase
 import com.aatmik.mydiary.data.DiaryEntry
 import com.aatmik.mydiary.data.DiaryRepository
 import com.aatmik.mydiary.data.SecurityManager
+import com.aatmik.mydiary.util.AnalyticsManager
 import com.aatmik.mydiary.util.DiaryUtils
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -176,6 +177,7 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
         if (_currentScreen.value != screen) {
             screenBackStack.add(_currentScreen.value)
             _currentScreen.value = screen
+            AnalyticsManager.logScreenView(screen.name)
         }
     }
 
@@ -224,11 +226,18 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
     // Database Actions
     fun saveEntry(entry: DiaryEntry, onComplete: (Long) -> Unit = {}) {
         viewModelScope.launch {
+            val isNew = entry.id == 0L
             val id = if (entry.id == 0L) {
                 repository.insert(entry)
             } else {
                 repository.update(entry)
                 entry.id
+            }
+            AnalyticsManager.log(
+                if (isNew) AnalyticsManager.Events.ENTRY_CREATED else AnalyticsManager.Events.ENTRY_UPDATED
+            ) {
+                putString("mood", entry.mood)
+                putBoolean("has_photo", entry.photosJson?.isNotBlank() == true)
             }
             refreshDetail(id)
             onComplete(id)
@@ -238,6 +247,7 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
     fun deleteEntry(entry: DiaryEntry, onComplete: () -> Unit = {}) {
         viewModelScope.launch {
             repository.delete(entry)
+            AnalyticsManager.log(AnalyticsManager.Events.ENTRY_DELETED)
             if (_currentDetailEntry.value?.id == entry.id) {
                 _currentDetailEntry.value = null
             }
@@ -250,6 +260,9 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
             val updated = entry.copy(isFavorite = !entry.isFavorite)
             repository.update(updated)
             _currentDetailEntry.value = updated
+            AnalyticsManager.log(
+                if (updated.isFavorite) AnalyticsManager.Events.ENTRY_FAVORITED else AnalyticsManager.Events.ENTRY_UNFAVORITED
+            )
         }
     }
 
@@ -257,40 +270,52 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             repository.clearAll()
             _currentDetailEntry.value = null
+            AnalyticsManager.log(AnalyticsManager.Events.CLEAR_ALL_DATA)
         }
     }
 
     // Search Actions
     fun setSearchQuery(query: String) {
         _searchQuery.value = query
+        if (query.length >= 3) {
+            AnalyticsManager.log(AnalyticsManager.Events.SEARCH_PERFORMED) {
+                putInt("query_length", query.length)
+            }
+        }
     }
 
     fun setActiveTagFilter(tag: String?) {
         _activeTagFilter.value = if (_activeTagFilter.value == tag) null else tag
+        _activeTagFilter.value?.let {
+            AnalyticsManager.log(AnalyticsManager.Events.TAG_FILTER_APPLIED) { putString("tag", it) }
+        }
     }
 
-    // Calendar Actions
     fun setSelectedCalendarDate(dateMillis: Long) {
         _selectedCalendarDateMillis.value = dateMillis
+        AnalyticsManager.log(AnalyticsManager.Events.CALENDAR_DATE_SELECTED)
     }
 
-    // Mood & Preferences Actions
     fun setTodayMood(mood: String) {
         _todayMood.value = mood
         securityManager.todayMood = mood
+        AnalyticsManager.log(AnalyticsManager.Events.MOOD_SELECTED) { putString("mood", mood) }
     }
 
     fun setThemeMode(mode: String) {
         _themeMode.value = mode
         securityManager.themeMode = mode
+        AnalyticsManager.log(AnalyticsManager.Events.THEME_CHANGED) { putString("mode", mode) }
     }
 
     fun setAppLockEnabled(enabled: Boolean) {
         securityManager.isAppLockEnabled = enabled
+        AnalyticsManager.log(AnalyticsManager.Events.APP_LOCK_TOGGLED) { putBoolean("enabled", enabled) }
     }
 
     fun setBiometricEnabled(enabled: Boolean) {
         securityManager.isBiometricEnabled = enabled
+        AnalyticsManager.log(AnalyticsManager.Events.BIOMETRIC_TOGGLED) { putBoolean("enabled", enabled) }
     }
 
     fun completeFirstLaunch(pin: String?, biometric: Boolean) {
@@ -305,6 +330,10 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
         _isUnlocked.value = true
         screenBackStack.clear()
         _currentScreen.value = Screen.HOME
+        AnalyticsManager.log(AnalyticsManager.Events.ONBOARDING_COMPLETED) {
+            putBoolean("pin_set", !pin.isNullOrBlank())
+            putBoolean("biometric_enabled", biometric)
+        }
     }
 
     fun unlockWithPin(pin: String): Boolean {
@@ -312,8 +341,10 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
             _isUnlocked.value = true
             screenBackStack.clear()
             _currentScreen.value = Screen.HOME
+            AnalyticsManager.log(AnalyticsManager.Events.UNLOCK_SUCCESS) { putString("method", "pin") }
             return true
         }
+        AnalyticsManager.log(AnalyticsManager.Events.UNLOCK_FAILED) { putString("method", "pin") }
         return false
     }
 
@@ -321,6 +352,7 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
         _isUnlocked.value = true
         screenBackStack.clear()
         _currentScreen.value = Screen.HOME
+        AnalyticsManager.log(AnalyticsManager.Events.UNLOCK_SUCCESS) { putString("method", "biometric") }
     }
 
     fun lockApp() {

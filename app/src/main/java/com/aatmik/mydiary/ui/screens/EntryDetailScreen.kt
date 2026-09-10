@@ -77,6 +77,7 @@ import com.aatmik.mydiary.ui.components.DeleteConfirmationDialog
 import com.aatmik.mydiary.ui.components.FullScreenPhotoViewer
 import com.aatmik.mydiary.ui.theme.DiaryPink
 import com.aatmik.mydiary.ui.theme.DiaryPinkSubtle
+import com.aatmik.mydiary.util.AnalyticsManager
 import com.aatmik.mydiary.util.DiaryUtils
 import com.aatmik.mydiary.viewmodel.DiaryViewModel
 
@@ -145,6 +146,10 @@ fun EntryDetailScreen(viewModel: DiaryViewModel) {
                                 showMenu = false
                                 val uri = DiaryUtils.exportToPdf(context, entry)
                                 if (uri != null) {
+                                    AnalyticsManager.log(AnalyticsManager.Events.ENTRY_EXPORTED) {
+                                        putString("format", "pdf")
+                                        putString("source", "menu")
+                                    }
                                     DiaryUtils.shareFile(context, uri, "application/pdf", "Share Diary PDF")
                                     Toast.makeText(context, "PDF created successfully", Toast.LENGTH_SHORT).show()
                                 }
@@ -156,6 +161,10 @@ fun EntryDetailScreen(viewModel: DiaryViewModel) {
                                 showMenu = false
                                 val uri = DiaryUtils.exportToTxt(context, entry)
                                 if (uri != null) {
+                                    AnalyticsManager.log(AnalyticsManager.Events.ENTRY_EXPORTED) {
+                                        putString("format", "txt")
+                                        putString("source", "menu")
+                                    }
                                     DiaryUtils.shareFile(context, uri, "text/plain", "Share Diary Text")
                                     Toast.makeText(context, "TXT created successfully", Toast.LENGTH_SHORT).show()
                                 }
@@ -481,6 +490,10 @@ fun EntryDetailScreen(viewModel: DiaryViewModel) {
                             showExportSheet = false
                             val uri = DiaryUtils.exportToPdf(context, entry)
                             if (uri != null) {
+                                AnalyticsManager.log(AnalyticsManager.Events.ENTRY_EXPORTED) {
+                                    putString("format", "pdf")
+                                    putString("source", "export_sheet")
+                                }
                                 DiaryUtils.shareFile(context, uri, "application/pdf", "Share Diary PDF")
                                 Toast.makeText(context, "PDF created successfully", Toast.LENGTH_SHORT).show()
                             }
@@ -520,6 +533,10 @@ fun EntryDetailScreen(viewModel: DiaryViewModel) {
                             showExportSheet = false
                             val uri = DiaryUtils.exportToTxt(context, entry)
                             if (uri != null) {
+                                AnalyticsManager.log(AnalyticsManager.Events.ENTRY_EXPORTED) {
+                                    putString("format", "txt")
+                                    putString("source", "export_sheet")
+                                }
                                 DiaryUtils.shareFile(context, uri, "text/plain", "Share Diary Text")
                                 Toast.makeText(context, "TXT created successfully", Toast.LENGTH_SHORT).show()
                             }
