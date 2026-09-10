@@ -14,7 +14,7 @@ object AdConfig {
      * Set to 'true' for Production ads.
      * Set to 'false' for Test ads.
      */
-    const val USE_PRODUCTION_ADS = false
+    const val USE_PRODUCTION_ADS = true
 
     // ----------------------------------------------------
     // Production AdMob Credentials
