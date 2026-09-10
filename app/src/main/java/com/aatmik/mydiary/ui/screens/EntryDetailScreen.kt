@@ -260,7 +260,7 @@ fun EntryDetailScreen(viewModel: DiaryViewModel) {
                         modifier = Modifier
                             .size(36.dp)
                             .clip(CircleShape)
-                            .background(DiaryPinkSubtle),
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -410,7 +410,7 @@ fun EntryDetailScreen(viewModel: DiaryViewModel) {
                             modifier = Modifier
                                 .size(44.dp)
                                 .clip(CircleShape)
-                                .background(DiaryPinkSubtle),
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(text = sticker, fontSize = 24.sp)

@@ -11,6 +11,9 @@ import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 object AdManager {
     private const val TAG = "AdManager"
@@ -29,7 +32,6 @@ object AdManager {
     fun initialize(context: Context) {
         if (isInitialized) return
         try {
-            // Configure test device IDs to protect AdMob account during emulator development
             val configuration = RequestConfiguration.Builder()
                 .setTestDeviceIds(listOf(AdRequest.DEVICE_ID_EMULATOR))
                 .build()
@@ -37,9 +39,17 @@ object AdManager {
 
             MobileAds.initialize(context) { initializationStatus ->
                 Log.d(TAG, "AdMob MobileAds initialized: $initializationStatus")
-                Log.d(TAG, "AdMob mode: ${if (AdConfig.USE_PRODUCTION_ADS) "PRODUCTION" else "TEST"}")
                 isInitialized = true
-                loadInterstitialAd(context.applicationContext)
+
+                // React to the flag whenever it changes, instead of checking once.
+                CoroutineScope(Dispatchers.Main).launch {
+                    RemoteConfigManager.adsEnabled.collect { enabled ->
+                        Log.d(TAG, "adsEnabled changed to $enabled")
+                        if (enabled) {
+                            loadInterstitialAd(context.applicationContext)
+                        }
+                    }
+                }
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to initialize AdMob SDK", e)
@@ -50,6 +60,7 @@ object AdManager {
      * Pre-load an interstitial ad in the background
      */
     fun loadInterstitialAd(context: Context) {
+        if (!RemoteConfigManager.adsEnabled.value) return
         if (interstitialAd != null || isAdLoading) return
 
         isAdLoading = true
@@ -68,7 +79,8 @@ object AdManager {
                 }
 
                 override fun onAdFailedToLoad(loadAdError: LoadAdError) {
-                    Log.w(TAG, "Interstitial ad failed to load: ${loadAdError.message}")
+                    Log.d("AdProof", "INTERSTITIAL FAILED — code=${loadAdError.code} domain=${loadAdError.domain} message=${loadAdError.message}")
+                    interstitialAd = null
                     interstitialAd = null
                     isAdLoading = false
                 }
@@ -81,6 +93,10 @@ object AdManager {
      * Always calls [onAdDismissed] when complete or if no ad is ready, ensuring uninterrupted user flow.
      */
     fun showInterstitialAd(activity: Activity, onAdDismissed: () -> Unit) {
+        if (!RemoteConfigManager.adsEnabled.value) {
+            onAdDismissed()
+            return
+        }
         val now = System.currentTimeMillis()
         val timeSinceLastAd = now - lastInterstitialShownTime
         val currentAd = interstitialAd

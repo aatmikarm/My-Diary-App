@@ -156,7 +156,7 @@ fun PinScreen(
                     modifier = Modifier
                         .size(64.dp)
                         .clip(CircleShape)
-                        .background(DiaryPinkSubtle),
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -319,7 +319,7 @@ fun PinScreen(
                                         modifier = Modifier
                                             .size(72.dp)
                                             .clip(CircleShape)
-                                            .background(DiaryPinkSubtle)
+                                            .background(MaterialTheme.colorScheme.surfaceVariant)
                                             .clickable { onDigitPress(key) }
                                             .testTag("pin_key_$key"),
                                         contentAlignment = Alignment.Center

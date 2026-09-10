@@ -305,7 +305,7 @@ fun CalendarScreen(viewModel: DiaryViewModel) {
 
                     Surface(
                         shape = RoundedCornerShape(12.dp),
-                        color = DiaryPinkSubtle
+                        color = MaterialTheme.colorScheme.surfaceVariant
                     ) {
                         Text(
                             text = "${entriesForDate.size} ${if (entriesForDate.size == 1) "memory" else "memories"}",

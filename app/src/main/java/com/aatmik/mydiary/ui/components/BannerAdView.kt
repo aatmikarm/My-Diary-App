@@ -1,5 +1,6 @@
 package com.aatmik.mydiary.ui.components
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.aatmik.mydiary.R
 import com.aatmik.mydiary.util.AdConfig
+import com.aatmik.mydiary.util.RemoteConfigManager
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
@@ -38,6 +41,8 @@ import com.google.android.gms.ads.LoadAdError
 fun BannerAdView(
     modifier: Modifier = Modifier
 ) {
+    val adsEnabled by RemoteConfigManager.adsEnabled.collectAsState()
+    if (!adsEnabled) return   // renders nothing — no gap, no placeholder, layout collapses cleanly
     val isInEditMode = LocalInspectionMode.current
     var isAdLoaded by remember { mutableStateOf(false) }
 
@@ -86,10 +91,12 @@ fun BannerAdView(
                         adListener = object : AdListener() {
                             override fun onAdLoaded() {
                                 isAdLoaded = true
+                                Log.d("AdProof", "BANNER LOADED SUCCESSFULLY")
                             }
 
                             override fun onAdFailedToLoad(error: LoadAdError) {
                                 isAdLoaded = false
+                                Log.d("AdProof", "BANNER FAILED — code=${error.code} domain=${error.domain} message=${error.message}")
                             }
                         }
                         loadAd(AdRequest.Builder().build())

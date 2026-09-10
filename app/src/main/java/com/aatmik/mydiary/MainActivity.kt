@@ -30,6 +30,7 @@ import com.aatmik.mydiary.ui.screens.WelcomeScreen
 import com.aatmik.mydiary.ui.theme.MyApplicationTheme
 import com.aatmik.mydiary.util.AdManager
 import com.aatmik.mydiary.util.AnalyticsManager
+import com.aatmik.mydiary.util.RemoteConfigManager
 import com.aatmik.mydiary.viewmodel.DiaryViewModel
 import com.aatmik.mydiary.viewmodel.Screen
 
@@ -39,6 +40,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         // Initialize Google Mobile Ads SDK (AdMob)
+        RemoteConfigManager.initialize()
         AdManager.initialize(this)
         AnalyticsManager.initialize(this)
 

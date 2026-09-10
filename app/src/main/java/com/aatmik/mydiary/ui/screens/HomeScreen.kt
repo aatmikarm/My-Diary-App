@@ -3,10 +3,8 @@ package com.aatmik.mydiary.ui.screens
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -21,7 +19,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -43,7 +40,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Surface
-import com.aatmik.mydiary.ui.components.BannerAdView
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -69,13 +65,14 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.aatmik.mydiary.R
 import com.aatmik.mydiary.data.DiaryEntry
+import com.aatmik.mydiary.ui.components.BannerAdView
 import com.aatmik.mydiary.ui.components.MoodSelectorRow
 import com.aatmik.mydiary.ui.theme.DiaryPink
-import com.aatmik.mydiary.ui.theme.DiaryPinkContainer
 import com.aatmik.mydiary.ui.theme.DiaryPinkSubtle
 import com.aatmik.mydiary.util.DiaryUtils
 import com.aatmik.mydiary.viewmodel.DiaryViewModel
 import com.aatmik.mydiary.viewmodel.Screen
+
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -215,7 +212,7 @@ fun HomeScreen(viewModel: DiaryViewModel) {
                 // Write Today Card
                 Card(
                     shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(containerColor = DiaryPinkSubtle),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(20.dp)) {
@@ -246,7 +243,8 @@ fun HomeScreen(viewModel: DiaryViewModel) {
                                     },
                                     label = { Text(prompt, fontSize = 12.sp) },
                                     colors = SuggestionChipDefaults.suggestionChipColors(
-                                        containerColor = Color.White
+                                        containerColor = MaterialTheme.colorScheme.surface,
+                                        labelColor = MaterialTheme.colorScheme.onSurface
                                     ),
                                     shape = RoundedCornerShape(16.dp)
                                 )
@@ -429,7 +427,7 @@ fun DiaryEntryCard(
                     tags.take(3).forEach { tag ->
                         Surface(
                             shape = RoundedCornerShape(8.dp),
-                            color = DiaryPinkSubtle
+                            color = MaterialTheme.colorScheme.surfaceVariant
                         ) {
                             Text(
                                 text = tag,

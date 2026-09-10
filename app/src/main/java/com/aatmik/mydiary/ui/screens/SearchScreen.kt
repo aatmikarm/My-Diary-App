@@ -174,7 +174,7 @@ fun SearchScreen(viewModel: DiaryViewModel) {
 
                     Surface(
                         shape = RoundedCornerShape(12.dp),
-                        color = DiaryPinkSubtle
+                        color = MaterialTheme.colorScheme.surfaceVariant
                     ) {
                         Text(
                             text = "${searchResults.size} found",

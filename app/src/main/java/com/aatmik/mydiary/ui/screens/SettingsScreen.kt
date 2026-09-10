@@ -196,7 +196,7 @@ fun SettingsScreen(viewModel: DiaryViewModel) {
                                 modifier = Modifier
                                     .size(36.dp)
                                     .clip(CircleShape)
-                                    .background(DiaryPinkSubtle),
+                                    .background(MaterialTheme.colorScheme.surfaceVariant),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
@@ -410,7 +410,7 @@ private fun SettingsSwitchRow(
             modifier = Modifier
                 .size(36.dp)
                 .clip(CircleShape)
-                .background(DiaryPinkSubtle),
+                .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -466,7 +466,7 @@ private fun SettingsActionRow(
             modifier = Modifier
                 .size(36.dp)
                 .clip(CircleShape)
-                .background(DiaryPinkSubtle),
+                .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center
         ) {
             Icon(

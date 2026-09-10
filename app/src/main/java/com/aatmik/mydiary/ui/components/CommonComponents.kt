@@ -85,7 +85,7 @@ fun MoodSelectorRow(
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
-                        .background(if (isSelected) DiaryPink else DiaryPinkSubtle),
+                        .background(if (isSelected) DiaryPink else MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
