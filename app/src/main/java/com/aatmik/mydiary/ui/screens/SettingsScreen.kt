@@ -72,6 +72,8 @@ import com.aatmik.mydiary.ui.theme.DiaryPinkSubtle
 import com.aatmik.mydiary.util.DiaryUtils
 import com.aatmik.mydiary.viewmodel.DiaryViewModel
 import com.aatmik.mydiary.viewmodel.Screen
+import androidx.fragment.app.FragmentActivity
+import com.aatmik.mydiary.util.BiometricHelper
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -145,7 +147,7 @@ fun SettingsScreen(viewModel: DiaryViewModel) {
                     )
 
                     if (isLockEnabled) {
-                        HorizontalDivider(color = DiaryPinkSubtle, thickness = 1.dp)
+                        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
 
                         SettingsActionRow(
                             icon = Icons.Default.Password,
@@ -154,19 +156,35 @@ fun SettingsScreen(viewModel: DiaryViewModel) {
                             onClick = { viewModel.navigateTo(Screen.PIN_SETUP) }
                         )
 
-                        HorizontalDivider(color = DiaryPinkSubtle, thickness = 1.dp)
+                        if (BiometricHelper.isBiometricAvailable(context)) {
+                            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
 
-                        SettingsSwitchRow(
-                            icon = Icons.Default.Fingerprint,
-                            title = "Biometric Unlock",
-                            subtitle = "Use fingerprint or face unlock",
-                            checked = isBiometricEnabled,
-                            onCheckedChange = { checked ->
-                                isBiometricEnabled = checked
-                                security.isBiometricEnabled = checked
-                                viewModel.setBiometricEnabled(checked)
-                            }
-                        )
+                            SettingsSwitchRow(
+                                icon = Icons.Default.Fingerprint,
+                                title = "Biometric Unlock",
+                                subtitle = "Use fingerprint or face unlock",
+                                checked = isBiometricEnabled,
+                                onCheckedChange = { checked ->
+                                    if (checked) {
+                                        (context as? FragmentActivity)?.let { activity ->
+                                            BiometricHelper.showBiometricPrompt(
+                                                activity = activity,
+                                                onSuccess = {
+                                                    isBiometricEnabled = true
+                                                    security.isBiometricEnabled = true
+                                                    viewModel.setBiometricEnabled(true)
+                                                }
+                                                // onError: leave the switch off, don't persist a broken state
+                                            )
+                                        }
+                                    } else {
+                                        isBiometricEnabled = false
+                                        security.isBiometricEnabled = false
+                                        viewModel.setBiometricEnabled(false)
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
             }

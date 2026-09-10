@@ -50,6 +50,10 @@ import androidx.compose.ui.unit.sp
 import com.aatmik.mydiary.ui.theme.DiaryPink
 import com.aatmik.mydiary.ui.theme.DiaryPinkSubtle
 import com.aatmik.mydiary.viewmodel.DiaryViewModel
+import androidx.compose.ui.platform.LocalContext
+import androidx.fragment.app.FragmentActivity
+import com.aatmik.mydiary.util.BiometricHelper
+import androidx.compose.runtime.LaunchedEffect
 
 enum class PinMode {
     SETUP,
@@ -62,6 +66,22 @@ fun PinScreen(
     viewModel: DiaryViewModel,
     mode: PinMode
 ) {
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        if (mode == PinMode.UNLOCK && viewModel.securityManager.isBiometricEnabled &&
+            BiometricHelper.isBiometricAvailable(context)
+        ) {
+            (context as? FragmentActivity)?.let { activity ->
+                BiometricHelper.showBiometricPrompt(
+                    activity = activity,
+                    onSuccess = { viewModel.unlockBiometric() }
+                    // onError intentionally silent — if the user dismisses the
+                    // prompt or taps "Use PIN instead", they just land on the
+                    // normal keypad with no error message, not a dead end.
+                )
+            }
+        }
+    }
     var targetLength by remember {
         mutableStateOf(if (mode == PinMode.UNLOCK) viewModel.securityManager.pinLength else 4)
     }
@@ -110,8 +130,12 @@ fun PinScreen(
                             setupStep = 2
                         } else {
                             if (updated == firstEnteredPin) {
-                                // Match!
-                                showBiometricPrompt = true
+                                // Match! Only offer biometric if the device actually supports it.
+                                if (BiometricHelper.isBiometricAvailable(context)) {
+                                    showBiometricPrompt = true
+                                } else {
+                                    viewModel.completeFirstLaunch(pin = firstEnteredPin, biometric = false)
+                                }
                             } else {
                                 errorMessage = "PINs did not match. Let's start over."
                                 currentPinInput = ""
@@ -298,7 +322,13 @@ fun PinScreen(
                                                 .size(72.dp)
                                                 .clip(CircleShape)
                                                 .clickable {
-                                                    viewModel.unlockBiometric()
+                                                    (context as? FragmentActivity)?.let { activity ->
+                                                        BiometricHelper.showBiometricPrompt(
+                                                            activity = activity,
+                                                            onSuccess = { viewModel.unlockBiometric() },
+                                                            onError = { errorMessage = it }
+                                                        )
+                                                    }
                                                 }
                                                 .testTag("pin_biometric"),
                                             contentAlignment = Alignment.Center
@@ -371,7 +401,19 @@ fun PinScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        viewModel.completeFirstLaunch(pin = firstEnteredPin, biometric = true)
+                        (context as? FragmentActivity)?.let { activity ->
+                            BiometricHelper.showBiometricPrompt(
+                                activity = activity,
+                                onSuccess = {
+                                    showBiometricPrompt = false
+                                    viewModel.completeFirstLaunch(pin = firstEnteredPin, biometric = true)
+                                },
+                                onError = {
+                                    showBiometricPrompt = false
+                                    viewModel.completeFirstLaunch(pin = firstEnteredPin, biometric = false)
+                                }
+                            )
+                        }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = DiaryPink),
                     modifier = Modifier.testTag("enable_biometrics_button")

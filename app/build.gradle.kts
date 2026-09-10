@@ -126,6 +126,7 @@ dependencies {
   implementation(libs.play.services.ads)
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.config)
+    implementation(libs.androidx.biometric)
     testImplementation(libs.androidx.compose.ui.test.junit4)
   testImplementation(libs.androidx.core)
   testImplementation(libs.androidx.junit)

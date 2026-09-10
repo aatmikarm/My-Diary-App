@@ -44,6 +44,7 @@ googleid = "1.1.1"
 playServicesAds = "23.6.0"
 firebaseAnalytics = "23.2.0"
 firebaseConfig = "23.1.0"
+biometric = "1.1.0"
 
 
 [libraries]
@@ -104,7 +105,7 @@ googleid = { group = "com.google.android.libraries.identity.googleid", name = "g
 play-services-ads = { group = "com.google.android.gms", name = "play-services-ads", version.ref = "playServicesAds" }
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics", version.ref = "firebaseAnalytics" }
 firebase-config = { group = "com.google.firebase", name = "firebase-config", version.ref = "firebaseConfig" }
-
+androidx-biometric = { group = "androidx.biometric", name = "biometric", version.ref = "biometric" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
