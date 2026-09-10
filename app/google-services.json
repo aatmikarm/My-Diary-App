@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "734977837463",
+    "project_id": "my-diary-212ec",
+    "storage_bucket": "my-diary-212ec.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:734977837463:android:6f3cefa6f6576cbceb1cd2",
+        "android_client_info": {
+          "package_name": "com.aatmik.mydiary"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDd6Zh0Q7gF2S4Xpuucdr95uqDWQzKM4y8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
