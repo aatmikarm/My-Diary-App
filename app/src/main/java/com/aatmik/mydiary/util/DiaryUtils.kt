@@ -91,6 +91,18 @@ object DiaryUtils {
         return array.toString()
     }
 
+    fun copyImageToInternalStorage(context: Context, sourceUri: Uri): String? {
+        return try {
+            val destFile = File(context.filesDir, "photo_${System.currentTimeMillis()}_${(0..9999).random()}.jpg")
+            context.contentResolver.openInputStream(sourceUri)?.use { input ->
+                FileOutputStream(destFile).use { output -> input.copyTo(output) }
+            }
+            destFile.absolutePath
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     fun countWords(text: String): Int {
         val trimmed = text.trim()
         if (trimmed.isEmpty()) return 0

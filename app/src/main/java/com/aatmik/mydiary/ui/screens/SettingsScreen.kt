@@ -87,6 +87,14 @@ import com.aatmik.mydiary.ui.components.ReminderPreferenceSelector
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material.icons.filled.Backup
+import androidx.compose.material.icons.filled.SettingsBackupRestore
+import kotlinx.coroutines.launch
+import com.aatmik.mydiary.util.BackupManager
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -275,7 +283,79 @@ fun SettingsScreen(viewModel: DiaryViewModel) {
 
             // DATA & BACKUP
             item {
+                val coroutineScope = rememberCoroutineScope()
+                var pendingBackupFile by remember { mutableStateOf<File?>(null) }
+                var isBackingUp by remember { mutableStateOf(false) }
+                var isRestoring by remember { mutableStateOf(false) }
+
+                val createBackupLauncher = rememberLauncherForActivityResult(
+                    ActivityResultContracts.CreateDocument("application/zip")
+                ) { destUri ->
+                    pendingBackupFile?.let { file ->
+                        if (destUri != null) {
+                            context.contentResolver.openOutputStream(destUri)?.use { out ->
+                                file.inputStream().use { it.copyTo(out) }
+                            }
+                            Toast.makeText(context, "Backup saved successfully", Toast.LENGTH_SHORT).show()
+                        }
+                        file.delete()
+                    }
+                    pendingBackupFile = null
+                }
+
+                val restoreBackupLauncher = rememberLauncherForActivityResult(
+                    ActivityResultContracts.OpenDocument()
+                ) { uri ->
+                    uri?.let {
+                        isRestoring = true
+                        coroutineScope.launch {
+                            try {
+                                val r = BackupManager.restoreFromZip(context, it)
+                                Toast.makeText(context, "Restored ${r.entriesRestored} memories successfully", Toast.LENGTH_LONG).show()
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "Restore failed: ${e.message}", Toast.LENGTH_LONG).show()
+                            } finally {
+                                isRestoring = false
+                            }
+                        }
+                    }
+                }
+
                 SettingsSection(title = "Data & Backup") {
+                    SettingsActionRow(
+                        icon = Icons.Default.Backup,
+                        title = if (isBackingUp) "Creating backup..." else "Create Full Backup",
+                        subtitle = "Save all entries, photos & drawings as one file",
+                        onClick = {
+                            if (allEntries.isEmpty()) {
+                                Toast.makeText(context, "No memories to back up yet", Toast.LENGTH_SHORT).show()
+                            } else if (!isBackingUp) {
+                                isBackingUp = true
+                                coroutineScope.launch {
+                                    val file = BackupManager.createBackupFile(context, allEntries)
+                                    pendingBackupFile = file
+                                    isBackingUp = false
+                                    createBackupLauncher.launch(file.name)
+                                }
+                            }
+                        }
+                    )
+
+                    HorizontalDivider(color = DiaryPinkSubtle, thickness = 1.dp)
+
+                    SettingsActionRow(
+                        icon = Icons.Default.SettingsBackupRestore,
+                        title = if (isRestoring) "Restoring..." else "Restore from Backup",
+                        subtitle = "Import entries from a previously saved backup file",
+                        onClick = {
+                            if (!isRestoring) {
+                                restoreBackupLauncher.launch(arrayOf("application/zip", "*/*"))
+                            }
+                        }
+                    )
+
+                    HorizontalDivider(color = DiaryPinkSubtle, thickness = 1.dp)
+
                     SettingsActionRow(
                         icon = Icons.Default.Download,
                         title = "Export All Memories",

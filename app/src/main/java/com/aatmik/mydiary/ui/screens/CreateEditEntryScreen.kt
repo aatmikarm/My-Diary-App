@@ -100,6 +100,8 @@ import com.aatmik.mydiary.util.DiaryUtils
 import com.aatmik.mydiary.viewmodel.DiaryViewModel
 import com.aatmik.mydiary.viewmodel.Screen
 import java.util.Calendar
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -211,13 +213,18 @@ fun CreateEditEntryScreen(
     }
 
     // Photo picker launcher
+    val coroutineScope = rememberCoroutineScope()
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 6)
     ) { uris: List<Uri> ->
-        uris.forEach { uri ->
-            photos.add(uri.toString())
-            AnalyticsManager.log(AnalyticsManager.Events.PHOTO_ADDED) {
-                putInt("count", uris.size)
+        if (uris.isNotEmpty()) {
+            coroutineScope.launch {
+                uris.forEach { uri ->
+                    DiaryUtils.copyImageToInternalStorage(context, uri)?.let { photos.add(it) }
+                }
+                AnalyticsManager.log(AnalyticsManager.Events.PHOTO_ADDED) {
+                    putInt("count", uris.size)
+                }
             }
         }
     }
