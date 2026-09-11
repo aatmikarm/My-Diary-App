@@ -20,19 +20,14 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import com.aatmik.mydiary.data.ReminderManager
+import com.aatmik.mydiary.data.ReminderPreset
+import com.aatmik.mydiary.util.NotificationHelper
+import com.aatmik.mydiary.util.ReminderScheduler
 
 enum class Screen {
-    SPLASH,
-    WELCOME,
-    PIN_SETUP,
-    LOCK,
-    HOME,
-    CALENDAR,
-    SEARCH,
-    CREATE_EDIT,
-    DETAIL,
-    DRAWING,
-    SETTINGS
+    SPLASH, WELCOME, PIN_SETUP, REMINDER_SETUP, LOCK, HOME,
+    CALENDAR, SEARCH, CREATE_EDIT, DETAIL, DRAWING, SETTINGS
 }
 
 class DiaryViewModel(application: Application) : AndroidViewModel(application) {
@@ -43,6 +38,10 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
         val dao = DiaryDatabase.getDatabase(application).diaryDao()
         repository = DiaryRepository(dao)
     }
+
+    val reminderManager = ReminderManager(application)
+    private val _reminderPreset = MutableStateFlow(reminderManager.preset)
+    val reminderPreset: StateFlow<ReminderPreset> = _reminderPreset.asStateFlow()
 
     // Navigation State
     private val _currentScreen = MutableStateFlow(Screen.SPLASH)
@@ -329,11 +328,37 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
         securityManager.isBiometricEnabled = biometric
         _isUnlocked.value = true
         screenBackStack.clear()
-        _currentScreen.value = Screen.HOME
+        // was: _currentScreen.value = Screen.HOME
+        _currentScreen.value = Screen.REMINDER_SETUP
         AnalyticsManager.log(AnalyticsManager.Events.ONBOARDING_COMPLETED) {
             putBoolean("pin_set", !pin.isNullOrBlank())
             putBoolean("biometric_enabled", biometric)
         }
+    }
+
+    fun updateReminderPreference(
+        presetChoice: ReminderPreset,
+        customHour: Int = ReminderManager.DEFAULT_HOUR,
+        customMinute: Int = ReminderManager.DEFAULT_MINUTE
+    ) {
+        reminderManager.applyPreset(presetChoice, customHour, customMinute)
+        if (reminderManager.isEnabled) {
+            NotificationHelper.createChannelIfNeeded(getApplication())
+            ReminderScheduler.scheduleDailyReminder(getApplication(), reminderManager.hour, reminderManager.minute)
+        } else {
+            ReminderScheduler.cancelReminder(getApplication())
+        }
+        _reminderPreset.value = presetChoice
+        AnalyticsManager.log(AnalyticsManager.Events.REMINDER_PREFERENCE_SET) {
+            putString("preset", presetChoice.name)
+            putBoolean("enabled", reminderManager.isEnabled)
+        }
+    }
+
+    fun finishReminderSetup(presetChoice: ReminderPreset, customHour: Int, customMinute: Int) {
+        updateReminderPreference(presetChoice, customHour, customMinute)
+        screenBackStack.clear()
+        _currentScreen.value = Screen.HOME
     }
 
     fun unlockWithPin(pin: String): Boolean {

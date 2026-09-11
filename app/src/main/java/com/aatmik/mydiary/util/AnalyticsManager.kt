@@ -47,5 +47,7 @@ object AnalyticsManager {
         const val TAG_ADDED = "tag_added"
         const val ENTRY_EXPORTED = "entry_exported"
         const val ALL_ENTRIES_EXPORTED = "all_entries_exported"
+
+        const val REMINDER_PREFERENCE_SET = "reminder_preference_set"
     }
 }

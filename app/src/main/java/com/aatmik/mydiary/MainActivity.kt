@@ -23,6 +23,7 @@ import com.aatmik.mydiary.ui.screens.EntryDetailScreen
 import com.aatmik.mydiary.ui.screens.HomeScreen
 import com.aatmik.mydiary.ui.screens.PinMode
 import com.aatmik.mydiary.ui.screens.PinScreen
+import com.aatmik.mydiary.ui.screens.ReminderSetupScreen
 import com.aatmik.mydiary.ui.screens.SearchScreen
 import com.aatmik.mydiary.ui.screens.SettingsScreen
 import com.aatmik.mydiary.ui.screens.SplashScreen
@@ -77,6 +78,7 @@ fun DiaryApp(viewModel: DiaryViewModel) {
         when (screen) {
             Screen.SPLASH -> SplashScreen(viewModel = viewModel)
             Screen.WELCOME -> WelcomeScreen(viewModel = viewModel)
+            Screen.REMINDER_SETUP -> ReminderSetupScreen(viewModel = viewModel)
             Screen.PIN_SETUP -> PinScreen(viewModel = viewModel, mode = PinMode.SETUP)
             Screen.LOCK -> PinScreen(viewModel = viewModel, mode = PinMode.UNLOCK)
             Screen.HOME -> HomeScreen(viewModel = viewModel)

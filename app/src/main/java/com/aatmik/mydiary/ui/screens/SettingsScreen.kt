@@ -52,6 +52,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -73,7 +74,19 @@ import com.aatmik.mydiary.util.DiaryUtils
 import com.aatmik.mydiary.viewmodel.DiaryViewModel
 import com.aatmik.mydiary.viewmodel.Screen
 import androidx.fragment.app.FragmentActivity
+import com.aatmik.mydiary.ui.components.ReminderPreferenceSelector
 import com.aatmik.mydiary.util.BiometricHelper
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.ui.graphics.graphicsLayer
+import com.aatmik.mydiary.data.ReminderPreset
+import com.aatmik.mydiary.ui.components.ReminderPreferenceSelector
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -126,7 +139,11 @@ fun SettingsScreen(viewModel: DiaryViewModel) {
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
             item { Spacer(modifier = Modifier.height(4.dp)) }
-
+            item {
+                SettingsSection(title = "Reminders") {
+                    CollapsibleReminderSettings(viewModel = viewModel)
+                }
+            }
             // PRIVACY & SECURITY
             item {
                 SettingsSection(title = "Privacy & Security") {
@@ -462,6 +479,105 @@ private fun SettingsSwitchRow(
                 checkedTrackColor = DiaryPink
             )
         )
+    }
+}
+
+@Composable
+private fun CollapsibleReminderSettings(viewModel: DiaryViewModel) {
+    val reminderManager = viewModel.reminderManager
+    var expanded by remember { mutableStateOf(false) }
+    var selectedPreset by remember { mutableStateOf(reminderManager.preset) }
+    var customHour by remember { mutableIntStateOf(reminderManager.hour) }
+    var customMinute by remember { mutableIntStateOf(reminderManager.minute) }
+
+    val rotation by animateFloatAsState(
+        targetValue = if (expanded) 180f else 0f,
+        label = "chevron_rotation"
+    )
+
+    val summary = if (!reminderManager.isEnabled) {
+        "Off"
+    } else {
+        val cal = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, reminderManager.hour)
+            set(Calendar.MINUTE, reminderManager.minute)
+        }
+        val timeText = SimpleDateFormat("h:mm a", Locale.getDefault()).format(cal.time)
+        "${selectedPreset.label} · $timeText"
+    }
+
+    Column {
+        // Header row — always visible, tap to expand/collapse
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = !expanded }
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.NotificationsActive,
+                    contentDescription = null,
+                    tint = DiaryPink,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(14.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Daily Writing Reminder",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = summary,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Icon(
+                imageVector = Icons.Default.ExpandMore,
+                contentDescription = if (expanded) "Collapse" else "Expand",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .size(22.dp)
+                    .graphicsLayer { rotationZ = rotation }
+            )
+        }
+
+        AnimatedVisibility(visible = expanded) {
+            Column {
+                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
+                Column(modifier = Modifier.padding(16.dp)) {
+                    ReminderPreferenceSelector(
+                        selectedPreset = selectedPreset,
+                        customHour = customHour,
+                        customMinute = customMinute,
+                        onPresetSelected = { preset ->
+                            selectedPreset = preset
+                            viewModel.updateReminderPreference(preset, customHour, customMinute)
+                        },
+                        onCustomTimeChanged = { h, m ->
+                            customHour = h
+                            customMinute = m
+                            if (selectedPreset == ReminderPreset.CUSTOM) {
+                                viewModel.updateReminderPreference(ReminderPreset.CUSTOM, h, m)
+                            }
+                        }
+                    )
+                }
+            }
+        }
     }
 }
 
