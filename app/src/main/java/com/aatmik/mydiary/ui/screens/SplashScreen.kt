@@ -58,9 +58,9 @@ fun SplashScreen(viewModel: DiaryViewModel) {
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        Color.White,
-                        DiaryPinkSubtle,
-                        Color.White
+                        MaterialTheme.colorScheme.background,
+                        MaterialTheme.colorScheme.surfaceVariant,
+                        MaterialTheme.colorScheme.background
                     )
                 )
             ),
@@ -85,7 +85,7 @@ fun SplashScreen(viewModel: DiaryViewModel) {
                 text = "My Diary",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
-                color = DiaryPink,
+                color = MaterialTheme.colorScheme.primary,
                 letterSpacing = 0.5.sp
             )
 
