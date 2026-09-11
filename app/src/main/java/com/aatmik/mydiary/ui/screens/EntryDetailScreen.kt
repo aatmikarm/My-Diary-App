@@ -141,6 +141,33 @@ fun EntryDetailScreen(viewModel: DiaryViewModel) {
                         onDismissRequest = { showMenu = false }
                     ) {
                         DropdownMenuItem(
+                            text = { Text("Share High-Quality Image (.png)") },
+                            onClick = {
+                                showMenu = false
+                                val uris = DiaryUtils.exportToImage(context, entry)
+                                if (uris.isNotEmpty()) {
+                                    AnalyticsManager.log(AnalyticsManager.Events.ENTRY_EXPORTED) {
+                                        putString("format", "image")
+                                        putString("source", "export_sheet")
+                                        putInt("page_count", uris.size)
+                                    }
+                                    DiaryUtils.shareImages(context, uris, "Share Diary Image")
+                                    Toast.makeText(context, "Image created successfully", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Share as Text") },
+                            onClick = {
+                                showMenu = false
+                                AnalyticsManager.log(AnalyticsManager.Events.ENTRY_EXPORTED) {
+                                    putString("format", "text")
+                                    putString("source", "menu")
+                                }
+                                DiaryUtils.shareAsText(context, entry)
+                            }
+                        )
+                        DropdownMenuItem(
                             text = { Text("Export to PDF") },
                             onClick = {
                                 showMenu = false
@@ -464,7 +491,7 @@ fun EntryDetailScreen(viewModel: DiaryViewModel) {
 
     // Export Bottom Sheet
     if (showExportSheet) {
-        val sheetState = rememberModalBottomSheetState()
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ModalBottomSheet(
             onDismissRequest = { showExportSheet = false },
             sheetState = sheetState
@@ -479,7 +506,51 @@ fun EntryDetailScreen(viewModel: DiaryViewModel) {
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = DiaryPinkSubtle),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            showExportSheet = false
+                            val uris = DiaryUtils.exportToImage(context, entry)
+                            if (uris.isNotEmpty()) {
+                                AnalyticsManager.log(AnalyticsManager.Events.ENTRY_EXPORTED) {
+                                    putString("format", "image")
+                                    putString("source", "export_sheet")
+                                    putInt("page_count", uris.size)
+                                }
+                                DiaryUtils.shareImages(context, uris, "Share Diary Image")
+                                Toast.makeText(context, "Image created successfully", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("🖼️", fontSize = 24.sp)
+                        Spacer(modifier = Modifier.width(14.dp))
+                        Column {
+                            Text(
+                                text = "High-Quality Image (.png)",
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                            Text(
+                                text = "Sharp photo of this memory, ready to share",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Card(
                     shape = RoundedCornerShape(16.dp),
@@ -558,6 +629,45 @@ fun EntryDetailScreen(viewModel: DiaryViewModel) {
                             )
                             Text(
                                 text = "Clean readable text archive for backups",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = DiaryPinkSubtle),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            showExportSheet = false
+                            AnalyticsManager.log(AnalyticsManager.Events.ENTRY_EXPORTED) {
+                                putString("format", "text")
+                                putString("source", "export_sheet")
+                            }
+                            DiaryUtils.shareAsText(context, entry)
+                        }
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("💬", fontSize = 24.sp)
+                        Spacer(modifier = Modifier.width(14.dp))
+                        Column {
+                            Text(
+                                text = "Share as Text",
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                            Text(
+                                text = "Sends the memory as a message, no file attached",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )

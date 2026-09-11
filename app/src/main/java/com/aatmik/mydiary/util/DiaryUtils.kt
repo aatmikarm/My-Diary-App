@@ -2,6 +2,7 @@ package com.aatmik.mydiary.util
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
 import android.net.Uri
@@ -79,7 +80,6 @@ object DiaryUtils {
                 list.add(array.getString(i))
             }
         } catch (_: Exception) {
-            // Fallback for simple comma delimited
             json.split(",").map { it.trim() }.filter { it.isNotEmpty() }.forEach { list.add(it) }
         }
         return list
@@ -171,102 +171,124 @@ object DiaryUtils {
         )
     }
 
-    // Export single entry to PDF
+    // Export single entry to PDF — paginates automatically so long entries
+    // (thousands of words) don't get silently truncated to one page.
     fun exportToPdf(context: Context, entry: DiaryEntry): Uri? {
         val fileName = "Diary_${formatShortDate(entry.dateMillis).replace(" ", "_")}.pdf"
         val exportFile = File(context.cacheDir, fileName)
 
-        val pdfDocument = PdfDocument()
-        val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create() // A4 size in points
-        val page = pdfDocument.startPage(pageInfo)
-        val canvas = page.canvas
+        val pageWidth = 595
+        val pageHeight = 842
+        val marginLeft = 50f
+        val marginRight = 545f
+        val contentWidth = marginRight - marginLeft
+        val bottomLimit = 790f
 
         val titlePaint = Paint().apply {
-            color = android.graphics.Color.rgb(255, 77, 128) // Pink accent
-            textSize = 22f
-            isFakeBoldText = true
-            isAntiAlias = true
+            color = android.graphics.Color.rgb(255, 77, 128)
+            textSize = 22f; isFakeBoldText = true; isAntiAlias = true
         }
-
         val metaPaint = Paint().apply {
-            color = android.graphics.Color.rgb(102, 92, 95) // Gray
-            textSize = 12f
-            isAntiAlias = true
+            color = android.graphics.Color.rgb(102, 92, 95)
+            textSize = 12f; isAntiAlias = true
         }
-
+        val entryTitlePaint = Paint().apply {
+            color = android.graphics.Color.rgb(27, 27, 33)
+            textSize = 18f; isFakeBoldText = true; isAntiAlias = true
+        }
+        val tagPaint = Paint().apply {
+            color = android.graphics.Color.rgb(232, 59, 108)
+            textSize = 12f; isAntiAlias = true
+        }
         val bodyPaint = Paint().apply {
-            color = android.graphics.Color.rgb(27, 27, 33) // Dark charcoal
-            textSize = 14f
-            isAntiAlias = true
+            color = android.graphics.Color.rgb(27, 27, 33)
+            textSize = 14f; isAntiAlias = true
         }
-
-        var yPos = 50f
-        canvas.drawText("My Diary", 50f, yPos, titlePaint)
-        yPos += 24f
-
-        canvas.drawText(
-            "${formatDate(entry.dateMillis)} • ${formatTime(entry.createdMillis)} • Mood: ${getMoodEmoji(entry.mood)} ${entry.mood}",
-            50f,
-            yPos,
-            metaPaint
-        )
-        yPos += 30f
-
-        if (entry.title.isNotBlank()) {
-            val entryTitlePaint = Paint().apply {
-                color = android.graphics.Color.rgb(27, 27, 33)
-                textSize = 18f
-                isFakeBoldText = true
-                isAntiAlias = true
-            }
-            canvas.drawText(entry.title, 50f, yPos, entryTitlePaint)
-            yPos += 24f
+        val footerPaint = Paint().apply {
+            color = android.graphics.Color.rgb(158, 149, 152)
+            textSize = 10f; isAntiAlias = true
         }
-
-        val tags = parseJsonList(entry.tagsJson)
-        if (tags.isNotEmpty()) {
-            val tagPaint = Paint().apply {
-                color = android.graphics.Color.rgb(232, 59, 108)
-                textSize = 12f
-                isAntiAlias = true
-            }
-            canvas.drawText(tags.joinToString("  "), 50f, yPos, tagPaint)
-            yPos += 24f
-        }
-
-        // Divider line
         val linePaint = Paint().apply {
             color = android.graphics.Color.rgb(240, 228, 232)
             strokeWidth = 1.5f
         }
-        canvas.drawLine(50f, yPos, 545f, yPos, linePaint)
-        yPos += 25f
 
-        // Multiline body
-        val lines = entry.content.split("\n")
-        for (line in lines) {
-            // Simple line wrap
-            var start = 0
-            while (start < line.length) {
-                val count = bodyPaint.breakText(line, start, line.length, true, 495f, null)
-                val chunk = line.substring(start, start + count)
-                canvas.drawText(chunk, 50f, yPos, bodyPaint)
-                yPos += 20f
-                start += count
-                if (yPos > 790f) break
+        // Pre-wrap the whole body once so we know exactly how many lines exist,
+        // and can split them across as many pages as needed.
+        val wrappedLines = mutableListOf<String>()
+        entry.content.split("\n").forEach { line ->
+            if (line.isEmpty()) {
+                wrappedLines.add("")
+            } else {
+                var start = 0
+                while (start < line.length) {
+                    val count = bodyPaint.breakText(line, start, line.length, true, contentWidth, null)
+                    wrappedLines.add(line.substring(start, start + count))
+                    start += count
+                }
             }
-            if (yPos > 790f) break
         }
 
-        // Footer
-        val footerPaint = Paint().apply {
-            color = android.graphics.Color.rgb(158, 149, 152)
-            textSize = 10f
-            isAntiAlias = true
-        }
-        canvas.drawText("Saved privately and encrypted on device • My Diary", 50f, 810f, footerPaint)
+        val tags = parseJsonList(entry.tagsJson)
+        val pdfDocument = PdfDocument()
+        var lineIndex = 0
+        var pageNumber = 1
 
-        pdfDocument.finishPage(page)
+        while (lineIndex < wrappedLines.size || pageNumber == 1) {
+            val pageInfo = PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageNumber).create()
+            val page = pdfDocument.startPage(pageInfo)
+            val canvas = page.canvas
+            var yPos = 50f
+            val isFirstPage = pageNumber == 1
+
+            if (isFirstPage) {
+                canvas.drawText("My Diary", marginLeft, yPos, titlePaint)
+                yPos += 24f
+                canvas.drawText(
+                    "${formatDate(entry.dateMillis)} • ${formatTime(entry.createdMillis)} • Mood: ${getMoodEmoji(entry.mood)} ${entry.mood}",
+                    marginLeft, yPos, metaPaint
+                )
+                yPos += 30f
+                if (entry.title.isNotBlank()) {
+                    canvas.drawText(entry.title, marginLeft, yPos, entryTitlePaint)
+                    yPos += 24f
+                }
+                if (tags.isNotEmpty()) {
+                    canvas.drawText(tags.joinToString("  "), marginLeft, yPos, tagPaint)
+                    yPos += 24f
+                }
+                canvas.drawLine(marginLeft, yPos, marginRight, yPos, linePaint)
+                yPos += 25f
+            } else {
+                canvas.drawText(
+                    "${formatShortDate(entry.dateMillis)} (continued)",
+                    marginLeft, yPos, metaPaint
+                )
+                yPos += 30f
+            }
+
+            // Fill this page with as many lines as fit before the bottom limit
+            while (lineIndex < wrappedLines.size && yPos <= bottomLimit) {
+                canvas.drawText(wrappedLines[lineIndex], marginLeft, yPos, bodyPaint)
+                yPos += 20f
+                lineIndex++
+            }
+
+            val isLastPage = lineIndex >= wrappedLines.size
+            if (isLastPage) {
+                canvas.drawText(
+                    "Saved privately and encrypted on device • My Diary",
+                    marginLeft, 810f, footerPaint
+                )
+            }
+            canvas.drawText("Page $pageNumber", marginRight - 60f, 810f, footerPaint)
+
+            pdfDocument.finishPage(page)
+            pageNumber++
+
+            if (isLastPage) break
+        }
+
         FileOutputStream(exportFile).use { out ->
             pdfDocument.writeTo(out)
         }
@@ -279,11 +301,178 @@ object DiaryUtils {
         )
     }
 
+    // Export single entry to one or more high-resolution images (for WhatsApp etc.)
+    // Long entries are split across multiple images instead of one giant bitmap,
+    // which would otherwise blow past Canvas size limits / OOM on long entries.
+    fun exportToImage(context: Context, entry: DiaryEntry): List<Uri> {
+        val scale = 3f // renders at 3x so pinch-zoom on WhatsApp stays sharp
+        val width = (360 * scale).toInt()
+        val paddingH = 20f * scale
+        val contentWidth = width - (paddingH * 2)
+        val lineHeight = 24f * scale
+        val linesPerPage = 30 // keeps each bitmap well under Canvas/memory limits
+
+        val bodyPaint = Paint().apply {
+            color = android.graphics.Color.rgb(27, 27, 33)
+            textSize = 16f * scale; isAntiAlias = true
+        }
+
+        val wrappedLines = mutableListOf<String>()
+        entry.content.split("\n").forEach { line ->
+            if (line.isEmpty()) {
+                wrappedLines.add("")
+            } else {
+                var start = 0
+                while (start < line.length) {
+                    val count = bodyPaint.breakText(line, start, line.length, true, contentWidth, null)
+                    wrappedLines.add(line.substring(start, start + count))
+                    start += count
+                }
+            }
+        }
+
+        val pages = wrappedLines.chunked(linesPerPage).ifEmpty { listOf(emptyList()) }
+        val tags = parseJsonList(entry.tagsJson)
+        val uris = mutableListOf<Uri>()
+
+        pages.forEachIndexed { index, pageLines ->
+            val isFirstPage = index == 0
+            val isLastPage = index == pages.lastIndex
+
+            var height = (50 * scale).toInt() + (34 * scale).toInt()
+            if (isFirstPage) {
+                if (entry.title.isNotBlank()) height += (30 * scale).toInt()
+                if (tags.isNotEmpty()) height += (30 * scale).toInt()
+                height += (30 * scale).toInt()
+            }
+            height += (pageLines.size * lineHeight).toInt()
+            height += if (isLastPage) (60 * scale).toInt() else (20 * scale).toInt()
+            if (pages.size > 1) height += (30 * scale).toInt()
+
+            val bitmap = Bitmap.createBitmap(
+                width,
+                height.coerceAtLeast((300 * scale).toInt()),
+                Bitmap.Config.ARGB_8888
+            )
+            val canvas = android.graphics.Canvas(bitmap)
+            canvas.drawColor(android.graphics.Color.WHITE)
+
+            val titlePaint = Paint().apply {
+                color = android.graphics.Color.rgb(255, 77, 128)
+                textSize = 26f * scale; isFakeBoldText = true; isAntiAlias = true
+            }
+            val metaPaint = Paint().apply {
+                color = android.graphics.Color.rgb(102, 92, 95)
+                textSize = 14f * scale; isAntiAlias = true
+            }
+            val entryTitlePaint = Paint().apply {
+                color = android.graphics.Color.rgb(27, 27, 33)
+                textSize = 20f * scale; isFakeBoldText = true; isAntiAlias = true
+            }
+            val tagPaint = Paint().apply {
+                color = android.graphics.Color.rgb(232, 59, 108)
+                textSize = 14f * scale; isAntiAlias = true
+            }
+            val footerPaint = Paint().apply {
+                color = android.graphics.Color.rgb(158, 149, 152)
+                textSize = 11f * scale; isAntiAlias = true
+            }
+            val linePaint = Paint().apply {
+                color = android.graphics.Color.rgb(240, 228, 232)
+                strokeWidth = 1.5f * scale
+            }
+
+            var yPos = 50f * scale
+            if (isFirstPage) {
+                canvas.drawText("My Diary", paddingH, yPos, titlePaint)
+                yPos += 32f * scale
+                canvas.drawText(
+                    "${formatDate(entry.dateMillis)} • ${formatTime(entry.createdMillis)} • ${getMoodEmoji(entry.mood)} ${entry.mood}",
+                    paddingH, yPos, metaPaint
+                )
+                yPos += 34f * scale
+                if (entry.title.isNotBlank()) {
+                    canvas.drawText(entry.title, paddingH, yPos, entryTitlePaint)
+                    yPos += 30f * scale
+                }
+                if (tags.isNotEmpty()) {
+                    canvas.drawText(tags.joinToString("  "), paddingH, yPos, tagPaint)
+                    yPos += 30f * scale
+                }
+                canvas.drawLine(paddingH, yPos, width - paddingH, yPos, linePaint)
+                yPos += 30f * scale
+            } else {
+                canvas.drawText("${formatShortDate(entry.dateMillis)} (continued)", paddingH, yPos, metaPaint)
+                yPos += 34f * scale
+            }
+
+            pageLines.forEach { line ->
+                canvas.drawText(line, paddingH, yPos, bodyPaint)
+                yPos += lineHeight
+            }
+
+            if (isLastPage) {
+                yPos += 20f * scale
+                canvas.drawText("Saved privately and encrypted on device • My Diary", paddingH, yPos, footerPaint)
+            }
+            if (pages.size > 1) {
+                yPos += 26f * scale
+                canvas.drawText("Page ${index + 1} of ${pages.size}", paddingH, yPos, footerPaint)
+            }
+
+            val fileName = "Diary_${formatShortDate(entry.dateMillis).replace(" ", "_")}_p${index + 1}.png"
+            val exportFile = File(context.cacheDir, fileName)
+            FileOutputStream(exportFile).use { out ->
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+            }
+            bitmap.recycle()
+
+            uris.add(FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", exportFile))
+        }
+
+        return uris
+    }
+
+    // Shares the entry as plain text directly — no file created, so it lands
+    // as an actual message (not an attachment) in WhatsApp/SMS/etc.
+    fun shareAsText(context: Context, entry: DiaryEntry) {
+        val text = buildString {
+            if (entry.title.isNotBlank()) {
+                appendLine(entry.title)
+                appendLine()
+            }
+            append(entry.content)
+        }
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, text)
+        }
+        context.startActivity(Intent.createChooser(intent, "Share as Text"))
+    }
     fun shareFile(context: Context, uri: Uri, mimeType: String, title: String) {
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = mimeType
             putExtra(Intent.EXTRA_STREAM, uri)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        context.startActivity(Intent.createChooser(intent, title))
+    }
+
+    // Shares one or more images — uses ACTION_SEND for a single image (matches
+    // shareFile behavior) and ACTION_SEND_MULTIPLE when an entry was paginated.
+    fun shareImages(context: Context, uris: List<Uri>, title: String) {
+        val intent = if (uris.size == 1) {
+            Intent(Intent.ACTION_SEND).apply {
+                type = "image/png"
+                putExtra(Intent.EXTRA_STREAM, uris.first())
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+        } else {
+            Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+                type = "image/png"
+                putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(uris))
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
         }
         context.startActivity(Intent.createChooser(intent, title))
     }
