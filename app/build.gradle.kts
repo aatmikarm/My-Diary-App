@@ -127,6 +127,7 @@ dependencies {
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.config)
     implementation(libs.androidx.biometric)
+    implementation("com.google.android.play:review-ktx:2.0.2")
     testImplementation(libs.androidx.compose.ui.test.junit4)
   testImplementation(libs.androidx.core)
   testImplementation(libs.androidx.junit)

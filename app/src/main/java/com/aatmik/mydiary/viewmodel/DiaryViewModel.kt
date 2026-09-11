@@ -240,6 +240,8 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
             }
             refreshDetail(id)
             onComplete(id)
+            // ADD THIS LINE:
+            if (isNew) com.aatmik.mydiary.util.ReviewHelper.onDiaryEntrySaved(getApplication())
         }
     }
 

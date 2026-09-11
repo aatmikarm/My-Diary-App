@@ -91,6 +91,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.material.icons.filled.Backup
+import androidx.compose.material.icons.filled.Diamond
 import androidx.compose.material.icons.filled.SettingsBackupRestore
 import kotlinx.coroutines.launch
 import com.aatmik.mydiary.util.BackupManager
@@ -281,6 +282,27 @@ fun SettingsScreen(viewModel: DiaryViewModel) {
                 }
             }
 
+            // OTHERS
+            item {
+                SettingsSection(title = "Others") {
+                    SettingsActionRow(
+                        icon = Icons.Default.Diamond,
+                        title = "Rate Us",
+                        subtitle = "Enjoying My Diary? Leave a review",
+                        onClick = { com.aatmik.mydiary.util.ReviewHelper.requestReview(context) }
+                    )
+
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
+
+                    SettingsActionRow(
+                        icon = Icons.Default.Shield,
+                        title = "Contact Support",
+                        subtitle = "Report a bug or ask a question",
+                        onClick = { com.aatmik.mydiary.util.SupportHelper.contactSupport(context) }
+                    )
+                }
+            }
+
             // DATA & BACKUP
             item {
                 val coroutineScope = rememberCoroutineScope()
@@ -341,7 +363,7 @@ fun SettingsScreen(viewModel: DiaryViewModel) {
                         }
                     )
 
-                    HorizontalDivider(color = DiaryPinkSubtle, thickness = 1.dp)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
 
                     SettingsActionRow(
                         icon = Icons.Default.SettingsBackupRestore,
@@ -354,7 +376,7 @@ fun SettingsScreen(viewModel: DiaryViewModel) {
                         }
                     )
 
-                    HorizontalDivider(color = DiaryPinkSubtle, thickness = 1.dp)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
 
                     SettingsActionRow(
                         icon = Icons.Default.Download,
@@ -372,7 +394,7 @@ fun SettingsScreen(viewModel: DiaryViewModel) {
                         }
                     )
 
-                    HorizontalDivider(color = DiaryPinkSubtle, thickness = 1.dp)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
 
                     SettingsActionRow(
                         icon = Icons.Default.DeleteForever,
