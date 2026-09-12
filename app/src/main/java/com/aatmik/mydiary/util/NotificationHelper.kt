@@ -50,6 +50,57 @@ object NotificationHelper {
         }
     }
 
+    const val STREAK_CHANNEL_ID = "streak_alert_channel_v1"
+    const val STREAK_NOTIFICATION_ID = 1002
+
+    fun createStreakChannelIfNeeded(context: Context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val manager = context.getSystemService(NotificationManager::class.java)
+            if (manager.getNotificationChannel(STREAK_CHANNEL_ID) == null) {
+                val soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+                val audioAttributes = AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build()
+                val channel = NotificationChannel(
+                    STREAK_CHANNEL_ID, "Streak Alerts", NotificationManager.IMPORTANCE_HIGH
+                ).apply {
+                    description = "Warns you before your writing streak breaks"
+                    setSound(soundUri, audioAttributes)
+                    enableVibration(true)
+                }
+                manager.createNotificationChannel(channel)
+            }
+        }
+    }
+
+    fun showStreakAtRiskNotification(context: Context, streakCount: Int) {
+        val hasPermission = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+                ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) ==
+                PackageManager.PERMISSION_GRANTED
+        if (!hasPermission) return
+
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notification = NotificationCompat.Builder(context, STREAK_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setColor(DiaryPink.toArgb())
+            .setContentTitle("🔥 Your $streakCount-day streak ends tonight")
+            .setContentText("Write today's entry before midnight to keep it going.")
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(NotificationCompat.DEFAULT_SOUND or NotificationCompat.DEFAULT_VIBRATE)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .build()
+
+        NotificationManagerCompat.from(context).notify(STREAK_NOTIFICATION_ID, notification)
+    }
+
     fun showReminderNotification(context: Context) {
         val hasPermission = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
                 ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) ==

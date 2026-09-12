@@ -26,7 +26,12 @@ import com.aatmik.mydiary.util.NotificationHelper
 import com.aatmik.mydiary.util.ReminderScheduler
 import android.content.Context
 import android.util.Log
+import com.aatmik.mydiary.data.StreakReminderManager
+import com.aatmik.mydiary.streak.StreakActivityStore
+import com.aatmik.mydiary.streak.StreakEngine
 import com.aatmik.mydiary.util.ReviewHelper
+import com.aatmik.mydiary.util.StreakReminderScheduler
+import kotlinx.coroutines.flow.map
 
 enum class Screen {
     SPLASH, WELCOME, PIN_SETUP, REMINDER_SETUP, LOCK, HOME,
@@ -66,6 +71,12 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
     val allEntries: StateFlow<List<DiaryEntry>> = repository.allEntries
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val streakActivityStore = StreakActivityStore(application)
+
+    // unchanged trigger (Room's Flow still fires on insert/update), new source of truth:
+    val streakResult: StateFlow<StreakEngine.StreakResult> = allEntries
+        .map { StreakEngine.calculate(streakActivityStore.allActivityTimestamps()) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), StreakEngine.StreakResult(0, 0, false, false))
     val recentEntries: StateFlow<List<DiaryEntry>> = repository.recentEntries
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -236,6 +247,7 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
                 repository.update(entry)
                 entry.id
             }
+            streakActivityStore.recordToday()
             AnalyticsManager.log(
                 if (isNew) AnalyticsManager.Events.ENTRY_CREATED else AnalyticsManager.Events.ENTRY_UPDATED
             ) {
@@ -356,6 +368,17 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    val streakReminderManager = StreakReminderManager(application)
+
+    fun setStreakReminderEnabled(enabled: Boolean) {
+        streakReminderManager.isEnabled = enabled
+        if (enabled) {
+            NotificationHelper.createStreakChannelIfNeeded(getApplication())
+            StreakReminderScheduler.scheduleDailyCheck(getApplication(), streakReminderManager.hour, streakReminderManager.minute)
+        } else {
+            StreakReminderScheduler.cancel(getApplication())
+        }
+    }
     fun updateReminderPreference(
         presetChoice: ReminderPreset,
         customHour: Int = ReminderManager.DEFAULT_HOUR,

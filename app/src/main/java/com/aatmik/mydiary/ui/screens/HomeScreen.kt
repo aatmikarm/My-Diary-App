@@ -65,6 +65,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.aatmik.mydiary.R
 import com.aatmik.mydiary.data.DiaryEntry
+import com.aatmik.mydiary.streak.StreakBadge
 import com.aatmik.mydiary.ui.components.BannerAdView
 import com.aatmik.mydiary.ui.components.MoodSelectorRow
 import com.aatmik.mydiary.ui.theme.DiaryPink
@@ -216,12 +217,15 @@ fun HomeScreen(viewModel: DiaryViewModel) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(20.dp)) {
-                        Text(
-                            text = "How was your day?",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("How was your day?", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            val streak by viewModel.streakResult.collectAsState()
+                            StreakBadge(streakCount = streak.currentStreak, isAtRisk = streak.isAtRisk)
+                        }
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
                             text = "Capture a thought, a feeling, or a small memory.",

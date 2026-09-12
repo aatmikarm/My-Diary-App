@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.Diamond
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Fingerprint
+import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Password
@@ -150,7 +151,16 @@ fun SettingsScreen(viewModel: DiaryViewModel) {
                 SettingsSection(title = "Reminders") {
                     CollapsibleReminderSettings(viewModel = viewModel)
                 }
+                SettingsSwitchRow(
+                    icon = Icons.Default.LocalFireDepartment,
+                    title = "Streak Alerts",
+                    subtitle = "Warn me before my streak breaks",
+                    checked = viewModel.streakReminderManager.isEnabled,
+                    onCheckedChange = { viewModel.setStreakReminderEnabled(it) }
+                )
             }
+
+
             // PRIVACY & SECURITY
             item {
                 SettingsSection(title = "Privacy & Security") {

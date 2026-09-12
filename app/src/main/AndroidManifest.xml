@@ -47,7 +47,7 @@
                 android:resource="@xml/file_paths" />
         </provider>
         <receiver android:name="com.aatmik.mydiary.receiver.ReminderReceiver" android:exported="false" />
-
+        <receiver android:name=".receiver.StreakReminderReceiver" android:exported="false" />
         <receiver android:name="com.aatmik.mydiary.receiver.BootReceiver" android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
