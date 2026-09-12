@@ -20,6 +20,7 @@ import com.aatmik.mydiary.ui.screens.CalendarScreen
 import com.aatmik.mydiary.ui.screens.CreateEditEntryScreen
 import com.aatmik.mydiary.ui.screens.DrawingEditorScreen
 import com.aatmik.mydiary.ui.screens.EntryDetailScreen
+import com.aatmik.mydiary.ui.screens.FavoritesScreen
 import com.aatmik.mydiary.ui.screens.HomeScreen
 import com.aatmik.mydiary.ui.screens.PinMode
 import com.aatmik.mydiary.ui.screens.PinScreen
@@ -105,6 +106,7 @@ fun DiaryApp(viewModel: DiaryViewModel) {
                 }
             )
             Screen.SETTINGS -> SettingsScreen(viewModel = viewModel)
+            Screen.FAVORITES -> FavoritesScreen(viewModel = viewModel)
         }
     }
 }

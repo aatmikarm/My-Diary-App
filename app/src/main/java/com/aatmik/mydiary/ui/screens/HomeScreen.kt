@@ -135,6 +135,16 @@ fun HomeScreen(viewModel: DiaryViewModel) {
                         )
                     }
                     IconButton(
+                        onClick = { viewModel.navigateTo(Screen.FAVORITES) },
+                        modifier = Modifier.testTag("home_favorites_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Favorite,
+                            contentDescription = "Favorites",
+                            tint = DiaryPink
+                        )
+                    }
+                    IconButton(
                         onClick = { viewModel.navigateTo(Screen.SETTINGS) },
                         modifier = Modifier.testTag("home_settings_button")
                     ) {

@@ -35,7 +35,7 @@ import kotlinx.coroutines.flow.map
 
 enum class Screen {
     SPLASH, WELCOME, PIN_SETUP, REMINDER_SETUP, LOCK, HOME,
-    CALENDAR, SEARCH, CREATE_EDIT, DETAIL, DRAWING, SETTINGS
+    CALENDAR, SEARCH, CREATE_EDIT, DETAIL, DRAWING, SETTINGS, FAVORITES
 }
 
 class DiaryViewModel(application: Application) : AndroidViewModel(application) {
@@ -69,6 +69,10 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
 
     // Entries Flow
     val allEntries: StateFlow<List<DiaryEntry>> = repository.allEntries
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val favoriteEntries: StateFlow<List<DiaryEntry>> = allEntries
+        .combine(MutableStateFlow(Unit)) { entries, _ -> entries.filter { it.isFavorite } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val streakActivityStore = StreakActivityStore(application)
