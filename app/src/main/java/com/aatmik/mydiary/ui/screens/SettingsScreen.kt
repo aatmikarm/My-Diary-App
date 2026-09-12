@@ -1,6 +1,11 @@
 package com.aatmik.mydiary.ui.screens
 
+import android.content.Intent
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,13 +26,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material.icons.filled.Diamond
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Mood
+import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Password
+import androidx.compose.material.icons.filled.SettingsBackupRestore
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material3.AlertDialog
@@ -55,47 +65,35 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.fragment.app.FragmentActivity
 import com.aatmik.mydiary.R
+import com.aatmik.mydiary.data.ReminderPreset
+import com.aatmik.mydiary.ui.components.ReminderPreferenceSelector
 import com.aatmik.mydiary.ui.theme.DiaryPink
 import com.aatmik.mydiary.ui.theme.DiaryPinkSubtle
+import com.aatmik.mydiary.util.BackupManager
+import com.aatmik.mydiary.util.BiometricHelper
 import com.aatmik.mydiary.util.DiaryUtils
 import com.aatmik.mydiary.viewmodel.DiaryViewModel
 import com.aatmik.mydiary.viewmodel.Screen
-import androidx.fragment.app.FragmentActivity
-import com.aatmik.mydiary.ui.components.ReminderPreferenceSelector
-import com.aatmik.mydiary.util.BiometricHelper
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.NotificationsActive
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.ui.graphics.graphicsLayer
-import com.aatmik.mydiary.data.ReminderPreset
-import com.aatmik.mydiary.ui.components.ReminderPreferenceSelector
+import kotlinx.coroutines.launch
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.material.icons.filled.Backup
-import androidx.compose.material.icons.filled.Diamond
-import androidx.compose.material.icons.filled.SettingsBackupRestore
-import kotlinx.coroutines.launch
-import com.aatmik.mydiary.util.BackupManager
-import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -173,7 +171,10 @@ fun SettingsScreen(viewModel: DiaryViewModel) {
                     )
 
                     if (isLockEnabled) {
-                        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            thickness = 1.dp
+                        )
 
                         SettingsActionRow(
                             icon = Icons.Default.Password,
@@ -183,7 +184,10 @@ fun SettingsScreen(viewModel: DiaryViewModel) {
                         )
 
                         if (BiometricHelper.isBiometricAvailable(context)) {
-                            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                thickness = 1.dp
+                            )
 
                             SettingsSwitchRow(
                                 icon = Icons.Default.Fingerprint,
@@ -292,13 +296,53 @@ fun SettingsScreen(viewModel: DiaryViewModel) {
                         onClick = { com.aatmik.mydiary.util.ReviewHelper.requestReview(context) }
                     )
 
-                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        thickness = 1.dp
+                    )
 
                     SettingsActionRow(
                         icon = Icons.Default.Shield,
                         title = "Contact Support",
                         subtitle = "Report a bug or ask a question",
                         onClick = { com.aatmik.mydiary.util.SupportHelper.contactSupport(context) }
+                    )
+
+                    HorizontalDivider(color = DiaryPinkSubtle, thickness = 1.dp)
+
+                    SettingsActionRow(
+                        icon = Icons.Default.Share,
+                        title = "Share with Others",
+                        subtitle = "Tell a friend about My Diary",
+                        onClick = {
+                            val imageUri =
+                                com.aatmik.mydiary.util.DiaryUtils.getShareableDrawableUri(
+                                    context, R.drawable.share_promo
+                                )
+                            val shareMessage = """
+            📔 I've been using My Diary to jot down my thoughts and it's honestly become my favorite little habit!
+
+            ✨ Write, draw & doodle your day
+            🔒 100% private & offline — no one else can see it
+            😊 Add moods, stickers & photos to your memories
+            💭 A calm space just for your thoughts
+
+            Try it out: https://play.google.com/store/apps/details?id=com.aatmik.mydiary
+        """.trimIndent()
+
+                            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                type = "image/png"
+                                putExtra(Intent.EXTRA_STREAM, imageUri)
+                                putExtra(Intent.EXTRA_TEXT, shareMessage)
+                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            }
+                            context.startActivity(
+                                Intent.createChooser(
+                                    shareIntent,
+                                    "Share My Diary"
+                                )
+                            )
+                        }
                     )
                 }
             }
@@ -318,7 +362,8 @@ fun SettingsScreen(viewModel: DiaryViewModel) {
                             context.contentResolver.openOutputStream(destUri)?.use { out ->
                                 file.inputStream().use { it.copyTo(out) }
                             }
-                            Toast.makeText(context, "Backup saved successfully", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Backup saved successfully", Toast.LENGTH_SHORT)
+                                .show()
                         }
                         file.delete()
                     }
@@ -333,9 +378,17 @@ fun SettingsScreen(viewModel: DiaryViewModel) {
                         coroutineScope.launch {
                             try {
                                 val r = BackupManager.restoreFromZip(context, it)
-                                Toast.makeText(context, "Restored ${r.entriesRestored} memories successfully", Toast.LENGTH_LONG).show()
+                                Toast.makeText(
+                                    context,
+                                    "Restored ${r.entriesRestored} memories successfully",
+                                    Toast.LENGTH_LONG
+                                ).show()
                             } catch (e: Exception) {
-                                Toast.makeText(context, "Restore failed: ${e.message}", Toast.LENGTH_LONG).show()
+                                Toast.makeText(
+                                    context,
+                                    "Restore failed: ${e.message}",
+                                    Toast.LENGTH_LONG
+                                ).show()
                             } finally {
                                 isRestoring = false
                             }
@@ -350,7 +403,11 @@ fun SettingsScreen(viewModel: DiaryViewModel) {
                         subtitle = "Save all entries, photos & drawings as one file",
                         onClick = {
                             if (allEntries.isEmpty()) {
-                                Toast.makeText(context, "No memories to back up yet", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context,
+                                    "No memories to back up yet",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             } else if (!isBackingUp) {
                                 isBackingUp = true
                                 coroutineScope.launch {
@@ -363,7 +420,10 @@ fun SettingsScreen(viewModel: DiaryViewModel) {
                         }
                     )
 
-                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        thickness = 1.dp
+                    )
 
                     SettingsActionRow(
                         icon = Icons.Default.SettingsBackupRestore,
@@ -376,7 +436,10 @@ fun SettingsScreen(viewModel: DiaryViewModel) {
                         }
                     )
 
-                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        thickness = 1.dp
+                    )
 
                     SettingsActionRow(
                         icon = Icons.Default.Download,
@@ -384,17 +447,29 @@ fun SettingsScreen(viewModel: DiaryViewModel) {
                         subtitle = "Save all ${allEntries.size} entries as a text archive",
                         onClick = {
                             if (allEntries.isEmpty()) {
-                                Toast.makeText(context, "No memories to export yet", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context,
+                                    "No memories to export yet",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             } else {
                                 val uri = DiaryUtils.exportAllToTxt(context, allEntries)
                                 if (uri != null) {
-                                    DiaryUtils.shareFile(context, uri, "text/plain", "Share Diary Archive")
+                                    DiaryUtils.shareFile(
+                                        context,
+                                        uri,
+                                        "text/plain",
+                                        "Share Diary Archive"
+                                    )
                                 }
                             }
                         }
                     )
 
-                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        thickness = 1.dp
+                    )
 
                     SettingsActionRow(
                         icon = Icons.Default.DeleteForever,
@@ -659,7 +734,10 @@ private fun CollapsibleReminderSettings(viewModel: DiaryViewModel) {
 
         AnimatedVisibility(visible = expanded) {
             Column {
-                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    thickness = 1.dp
+                )
                 Column(modifier = Modifier.padding(16.dp)) {
                     ReminderPreferenceSelector(
                         selectedPreset = selectedPreset,

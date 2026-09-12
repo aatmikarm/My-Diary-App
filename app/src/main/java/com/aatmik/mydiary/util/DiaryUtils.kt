@@ -91,6 +91,18 @@ object DiaryUtils {
         return array.toString()
     }
 
+    fun getShareableDrawableUri(context: Context, drawableResId: Int): Uri {
+        val cacheFile = File(context.cacheDir, "share_promo.png")
+        val bitmap = android.graphics.BitmapFactory.decodeResource(context.resources, drawableResId)
+        FileOutputStream(cacheFile).use { out ->
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+        }
+        return FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            cacheFile
+        )
+    }
     fun copyImageToInternalStorage(context: Context, sourceUri: Uri): String? {
         return try {
             val destFile = File(context.filesDir, "photo_${System.currentTimeMillis()}_${(0..9999).random()}.jpg")
