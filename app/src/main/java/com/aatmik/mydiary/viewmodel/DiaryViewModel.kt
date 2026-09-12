@@ -24,6 +24,9 @@ import com.aatmik.mydiary.data.ReminderManager
 import com.aatmik.mydiary.data.ReminderPreset
 import com.aatmik.mydiary.util.NotificationHelper
 import com.aatmik.mydiary.util.ReminderScheduler
+import android.content.Context
+import android.util.Log
+import com.aatmik.mydiary.util.ReviewHelper
 
 enum class Screen {
     SPLASH, WELCOME, PIN_SETUP, REMINDER_SETUP, LOCK, HOME,
@@ -189,7 +192,8 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
         return false
     }
 
-    fun openCreateEntry(forDateMillis: Long = System.currentTimeMillis()) {
+    fun openCreateEntry(forDateMillis: Long = System.currentTimeMillis(), context: Context? = null) {
+        context?.let { ReviewHelper.checkAndShowPendingReview(it) }
         pendingDoodlePath = null
         val newEntry = DiaryEntry(
             dateMillis = forDateMillis,
@@ -240,8 +244,22 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
             }
             refreshDetail(id)
             onComplete(id)
-            // ADD THIS LINE:
-            if (isNew) com.aatmik.mydiary.util.ReviewHelper.onDiaryEntrySaved(getApplication())
+            if (isNew) {
+                val prefs = getApplication<Application>().getSharedPreferences("diary_prefs", Context.MODE_PRIVATE)
+                val count = prefs.getInt("entry_count", 0) + 1
+                prefs.edit().putInt("entry_count", count).apply()
+                val alreadyPrompted = prefs.getBoolean("review_prompted_at_3", false)
+
+                Log.d("ReviewFlow", "saveEntry: count=$count, alreadyPrompted=$alreadyPrompted")
+
+                if (count == 3 && !alreadyPrompted) {
+                    prefs.edit()
+                        .putBoolean("review_prompted_at_3", true)
+                        .putBoolean("review_pending", true)
+                        .apply()
+                    android.util.Log.d("ReviewFlow", "saveEntry: milestone hit, review_pending set to true")
+                }
+            }
         }
     }
 

@@ -151,7 +151,7 @@ fun HomeScreen(viewModel: DiaryViewModel) {
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = { viewModel.openCreateEntry() },
+                onClick = { viewModel.openCreateEntry(context = context) },
                 icon = { Icon(Icons.Default.Add, contentDescription = "Write Entry") },
                 text = { Text("Write", fontWeight = FontWeight.Bold) },
                 containerColor = DiaryPink,
@@ -239,7 +239,7 @@ fun HomeScreen(viewModel: DiaryViewModel) {
                             DiaryUtils.PROMPTS.take(3).forEach { prompt ->
                                 SuggestionChip(
                                     onClick = {
-                                        viewModel.openCreateEntry()
+                                        viewModel.openCreateEntry(context = context)
                                     },
                                     label = { Text(prompt, fontSize = 12.sp) },
                                     colors = SuggestionChipDefaults.suggestionChipColors(
@@ -254,7 +254,7 @@ fun HomeScreen(viewModel: DiaryViewModel) {
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Button(
-                            onClick = { viewModel.openCreateEntry() },
+                            onClick = { viewModel.openCreateEntry(context = context) },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = DiaryPink,
                                 contentColor = Color.White
@@ -309,7 +309,7 @@ fun HomeScreen(viewModel: DiaryViewModel) {
             // Memories List or Empty State
             if (recentEntries.isEmpty()) {
                 item {
-                    EmptyMemoriesState(onWriteClick = { viewModel.openCreateEntry() })
+                    EmptyMemoriesState(onWriteClick = { viewModel.openCreateEntry(context = context) })
                 }
             } else {
                 items(recentEntries) { entry ->
