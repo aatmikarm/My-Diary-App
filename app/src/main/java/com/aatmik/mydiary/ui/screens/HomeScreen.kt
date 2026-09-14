@@ -73,6 +73,8 @@ import com.aatmik.mydiary.ui.theme.DiaryPinkSubtle
 import com.aatmik.mydiary.util.DiaryUtils
 import com.aatmik.mydiary.viewmodel.DiaryViewModel
 import com.aatmik.mydiary.viewmodel.Screen
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedTextField
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -82,6 +84,7 @@ fun HomeScreen(viewModel: DiaryViewModel) {
     val recentEntries by viewModel.recentEntries.collectAsState()
     val allEntries by viewModel.allEntries.collectAsState()
     val todayMood by viewModel.todayMood.collectAsState()
+    val userName by viewModel.userName.collectAsState()
 
     var backPressedTime by remember { mutableStateOf(0L) }
     BackHandler {
@@ -95,16 +98,51 @@ fun HomeScreen(viewModel: DiaryViewModel) {
         }
     }
 
+    var showNameDialog by remember { mutableStateOf(userName == null) }
+    var nameInput by remember { mutableStateOf("") }
+
+    if (showNameDialog) {
+        AlertDialog(
+            onDismissRequest = { },
+            title = { Text("What should we call you?") },
+            text = {
+                OutlinedTextField(
+                    value = nameInput,
+                    onValueChange = { nameInput = it },
+                    placeholder = { Text("Your name") },
+                    singleLine = true
+                )
+            },
+            confirmButton = {
+                Button(onClick = {
+                    if (nameInput.isNotBlank()) {
+                        viewModel.saveUserName(nameInput)
+                        showNameDialog = false
+                    }
+                }) {
+                    Text("Save")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showNameDialog = false }) {
+                    Text("Skip")
+                }
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Column {
                         Text(
-                            text = "My Diary",
+                            text = userName?.let { "Hi, $it" } ?: "My Diary",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
-                            color = DiaryPink
+                            color = DiaryPink,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = DiaryUtils.formatDate(System.currentTimeMillis()),

@@ -337,6 +337,16 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
         AnalyticsManager.log(AnalyticsManager.Events.MOOD_SELECTED) { putString("mood", mood) }
     }
 
+    private val namePrefs = getApplication<Application>().getSharedPreferences("diary_prefs", Context.MODE_PRIVATE)
+
+    private val _userName = MutableStateFlow(namePrefs.getString("user_name", null))
+    val userName: StateFlow<String?> = _userName.asStateFlow()
+
+    fun saveUserName(name: String) {
+        namePrefs.edit().putString("user_name", name.trim()).apply()
+        _userName.value = name.trim()
+    }
+
     fun setThemeMode(mode: String) {
         _themeMode.value = mode
         securityManager.themeMode = mode
