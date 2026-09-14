@@ -26,21 +26,26 @@ import com.aatmik.mydiary.util.NotificationHelper
 import com.aatmik.mydiary.util.ReminderScheduler
 import android.content.Context
 import android.util.Log
+import com.aatmik.mydiary.data.EntryRemoteSync
+import com.aatmik.mydiary.data.ProfileManager
+import com.aatmik.mydiary.data.ProfileRemoteSync
 import com.aatmik.mydiary.data.StreakReminderManager
 import com.aatmik.mydiary.streak.StreakActivityStore
 import com.aatmik.mydiary.streak.StreakEngine
+import com.aatmik.mydiary.util.RemoteConfigManager
 import com.aatmik.mydiary.util.ReviewHelper
 import com.aatmik.mydiary.util.StreakReminderScheduler
 import kotlinx.coroutines.flow.map
 
 enum class Screen {
-    SPLASH, WELCOME, PIN_SETUP, REMINDER_SETUP, LOCK, HOME,
+    SPLASH, WELCOME, PROFILE_SETUP, PIN_SETUP, REMINDER_SETUP, LOCK, HOME,
     CALENDAR, SEARCH, CREATE_EDIT, DETAIL, DRAWING, SETTINGS, FAVORITES
 }
 
 class DiaryViewModel(application: Application) : AndroidViewModel(application) {
     private val repository: DiaryRepository
     val securityManager = SecurityManager(application)
+    val profileManager = ProfileManager(application)
 
     init {
         val dao = DiaryDatabase.getDatabase(application).diaryDao()
@@ -242,6 +247,7 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // Database Actions
+    // Database Actions
     fun saveEntry(entry: DiaryEntry, onComplete: (Long) -> Unit = {}) {
         viewModelScope.launch {
             val isNew = entry.id == 0L
@@ -258,6 +264,11 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
                 putString("mood", entry.mood)
                 putBoolean("has_photo", entry.photosJson?.isNotBlank() == true)
             }
+
+            if (RemoteConfigManager.profileFirestoreSyncEnabled.value) {
+                EntryRemoteSync.pushEntry(profileManager.getOrCreateInstallId(), entry.copy(id = id))
+            }
+
             refreshDetail(id)
             onComplete(id)
             if (isNew) {
@@ -370,6 +381,42 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
             putBoolean("pin_set", !pin.isNullOrBlank())
             putBoolean("biometric_enabled", biometric)
         }
+    }
+
+    fun completeProfileSetup(
+        name: String,
+        birthdayYear: Int?,
+        birthdayMonth: Int?,
+        birthdayDay: Int?,
+        gender: String,
+        goals: Set<String>
+    ) {
+        profileManager.saveProfile(name, birthdayYear, birthdayMonth, birthdayDay, gender, goals)
+        val calculatedAge = profileManager.calculateAge()
+
+        if (RemoteConfigManager.profileFirestoreSyncEnabled.value) {
+            ProfileRemoteSync.pushProfile(
+                installId = profileManager.getOrCreateInstallId(),
+                name = name,
+                age = calculatedAge,
+                birthdayYear = birthdayYear,
+                birthdayMonth = birthdayMonth,
+                birthdayDay = birthdayDay,
+                gender = gender,
+                goals = goals
+            )
+        }
+        // Anonymous funnel event only — no personal fields — kept in Analytics purely
+        // to track % of users who complete vs. skip onboarding.
+        if (RemoteConfigManager.profileEventEnabled.value) {
+            AnalyticsManager.log(AnalyticsManager.Events.PROFILE_SETUP_COMPLETED)
+        }
+        _currentScreen.value = Screen.PIN_SETUP
+    }
+
+    fun skipProfileSetup() {
+        AnalyticsManager.log(AnalyticsManager.Events.PROFILE_SETUP_SKIPPED)
+        _currentScreen.value = Screen.PIN_SETUP
     }
 
     val streakReminderManager = StreakReminderManager(application)

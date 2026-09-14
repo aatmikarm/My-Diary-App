@@ -24,6 +24,7 @@ import com.aatmik.mydiary.ui.screens.FavoritesScreen
 import com.aatmik.mydiary.ui.screens.HomeScreen
 import com.aatmik.mydiary.ui.screens.PinMode
 import com.aatmik.mydiary.ui.screens.PinScreen
+import com.aatmik.mydiary.ui.screens.ProfileSetupScreen
 import com.aatmik.mydiary.ui.screens.ReminderSetupScreen
 import com.aatmik.mydiary.ui.screens.SearchScreen
 import com.aatmik.mydiary.ui.screens.SettingsScreen
@@ -107,6 +108,7 @@ fun DiaryApp(viewModel: DiaryViewModel) {
             )
             Screen.SETTINGS -> SettingsScreen(viewModel = viewModel)
             Screen.FAVORITES -> FavoritesScreen(viewModel = viewModel)
+            Screen.PROFILE_SETUP -> ProfileSetupScreen(viewModel = viewModel)
         }
     }
 }

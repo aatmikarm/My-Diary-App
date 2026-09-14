@@ -23,10 +23,17 @@ object AnalyticsManager {
         analytics.logEvent(eventName, bundle)
     }
 
+    fun setUserProperty(name: String, value: String?) {
+        if (!::analytics.isInitialized) return
+        analytics.setUserProperty(name, value)
+    }
+
     object Events {
         const val ENTRY_CREATED = "entry_created"
         const val ENTRY_UPDATED = "entry_updated"
         const val ENTRY_DELETED = "entry_deleted"
+        const val PROFILE_SETUP_COMPLETED = "profile_setup_completed"
+        const val PROFILE_SETUP_SKIPPED = "profile_setup_skipped"
         const val ENTRY_FAVORITED = "entry_favorited"
         const val ENTRY_UNFAVORITED = "entry_unfavorited"
         const val MOOD_SELECTED = "mood_selected"

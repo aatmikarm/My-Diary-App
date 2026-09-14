@@ -100,8 +100,9 @@ fun HomeScreen(viewModel: DiaryViewModel) {
             TopAppBar(
                 title = {
                     Column {
+                        val greetingName = viewModel.profileManager.greetingName()
                         Text(
-                            text = "My Diary",
+                            text = greetingName?.let { "Hi, $it" } ?: "My Diary",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = DiaryPink

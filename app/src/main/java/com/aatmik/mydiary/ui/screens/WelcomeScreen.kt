@@ -139,7 +139,7 @@ fun WelcomeScreen(viewModel: DiaryViewModel) {
             ) {
                 Button(
                     onClick = {
-                        viewModel.navigateTo(Screen.PIN_SETUP)
+                        viewModel.navigateTo(Screen.PROFILE_SETUP)   // was Screen.PIN_SETUP
                     },
                     modifier = Modifier
                         .fillMaxWidth()
